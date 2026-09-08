@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>生产信息发布 - 移动端</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--primary:#1890ff;--primary-light:#e6f4ff;--success:#52c41a;--warning:#fa8c16;--danger:#ff4d4f;--text-primary:#262626;--text-secondary:#595959;--text-tertiary:#8c8c8c;--text-placeholder:#bfbfbf;--border-color:#e8e8e8;--border-light:#f0f0f0;--bg-page:#f5f5f5;--bg-white:#fff;--bg-gray:#fafafa;--shadow-sm:0 1px 2px rgba(0,0,0,0.04);--radius-sm:6px;--radius-md:10px;--radius-lg:14px;--safe-bottom:env(safe-area-inset-bottom,0px)}
+html,body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue","Microsoft YaHei",sans-serif;background:var(--bg-page);color:var(--text-primary);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+body{display:flex;justify-content:center;min-height:100vh}
+.phone-frame{width:375px;min-height:100vh;background:var(--bg-page);position:relative;overflow:hidden;display:flex;flex-direction:column}
+@media(min-width:500px){body{padding:20px 0;align-items:flex-start}.phone-frame{min-height:calc(100vh - 40px);border-radius:32px;box-shadow:0 12px 40px rgba(0,0,0,0.15);overflow:hidden}}
+.status-bar{height:44px;display:flex;justify-content:space-between;align-items:center;padding:0 20px;font-size:14px;font-weight:600;flex-shrink:0;background:var(--bg-white)}
+.status-bar .time{font-size:15px}
+.status-bar .icons{display:flex;gap:5px;align-items:center}
+.nav-bar{height:44px;display:flex;align-items:center;justify-content:center;padding:0 16px;background:var(--bg-white);border-bottom:1px solid var(--border-light);position:relative;flex-shrink:0}
+.nav-bar .nav-title{font-size:17px;font-weight:600;color:var(--text-primary)}
+.nav-bar .nav-left{position:absolute;left:16px;display:flex;align-items:center;cursor:pointer;color:var(--primary);font-size:14px}
+.nav-bar .nav-left svg{width:18px;height:18px;margin-right:2px}
+.nav-bar .nav-right{position:absolute;right:16px;display:flex;align-items:center;cursor:pointer;color:var(--primary);font-size:14px}
+.content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:70px}
+.tab-bar{position:absolute;bottom:0;left:0;right:0;height:56px;background:var(--bg-white);border-top:1px solid var(--border-light);display:flex;padding-bottom:var(--safe-bottom);z-index:100}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;color:var(--text-tertiary);font-size:11px;transition:color 0.2s;padding-top:4px;position:relative}
+.tab-item svg{width:22px;height:22px}
+.tab-item.active{color:var(--primary)}
+.tab-item .badge{position:absolute;top:2px;right:50%;transform:translateX(16px);background:var(--danger);color:#fff;font-size:10px;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.search-bar{display:flex;align-items:center;padding:10px 16px 6px;background:var(--bg-white)}
+.search-box{flex:1;display:flex;align-items:center;background:var(--bg-gray);border-radius:16px;padding:7px 12px;gap:6px}
+.search-box svg{width:14px;height:14px;color:var(--text-tertiary);flex-shrink:0}
+.search-box input{flex:1;border:none;background:transparent;outline:none;font-size:14px;color:var(--text-primary)}
+.search-box input::placeholder{color:var(--text-placeholder)}
+.search-template-dropdown{display:flex;align-items:center;gap:4px;padding:7px 12px;background:var(--bg-gray);border-radius:16px;font-size:14px;color:var(--text-primary);cursor:pointer;margin-right:8px;flex-shrink:0;white-space:nowrap}
+.search-template-dropdown svg{width:12px;height:12px;color:var(--text-tertiary)}
+.search-template-dropdown:active{opacity:0.7}
+.search-template-dropdown.active{color:var(--primary)}
+.search-template-dropdown.active svg{color:var(--primary)}
+.template-tree-mask{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:350;display:none;opacity:0;transition:opacity 0.2s}
+.template-tree-mask.active{display:block;opacity:1}
+.template-tree-modal{position:absolute;bottom:0;left:0;right:0;background:var(--bg-white);z-index:351;border-radius:var(--radius-lg) var(--radius-lg) 0 0;display:flex;flex-direction:column;max-height:75%;transform:translateY(100%);transition:transform 0.25s ease}
+.template-tree-modal.active{transform:translateY(0)}
+.tt-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border-light);flex-shrink:0}
+.tt-title{font-size:16px;font-weight:600;color:var(--text-primary)}
+.tt-close{width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--text-tertiary);cursor:pointer;border-radius:50%}
+.tt-close:active{background:var(--bg-gray)}
+.tt-main{display:flex;flex:1;overflow:hidden;min-height:280px}
+.tt-col{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.tt-col-cat{max-width:40%;border-right:1px solid var(--border-light)}
+.tt-col-header{padding:12px 14px;font-size:13px;font-weight:600;color:var(--text-tertiary);background:var(--bg-gray);position:sticky;top:0;z-index:1}
+.tt-col-content{flex:1}
+.tt-cat-item{padding:12px 14px;font-size:14px;color:var(--text-primary);cursor:pointer;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border-light)}
+.tt-cat-item:active{background:var(--bg-gray)}
+.tt-cat-item.active{color:var(--primary);background:var(--primary-light);font-weight:500}
+.tt-cat-item .tt-arrow{font-size:11px;color:var(--text-tertiary)}
+.tt-cat-item.active .tt-arrow{color:var(--primary)}
+.tt-group-item{padding:12px 14px;font-size:14px;color:var(--text-primary);cursor:pointer;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border-light);background:var(--bg-white)}
+.tt-group-item:active{background:var(--bg-gray)}
+.tt-group-item.expanded{color:var(--primary);font-weight:500}
+.tt-group-item .tt-arrow{font-size:11px;color:var(--text-tertiary);transition:transform 0.2s}
+.tt-group-item.expanded .tt-arrow{transform:rotate(180deg);color:var(--primary)}
+.tt-tpl-item{padding:10px 14px 10px 36px;font-size:13px;color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border-light)}
+.tt-tpl-item:active{background:var(--bg-gray)}
+.tt-tpl-item.selected{color:var(--primary);background:var(--primary-light)}
+.tt-tpl-item .tt-check{width:16px;height:16px;border:1.5px solid var(--border-color);border-radius:3px;display:inline-flex;align-items:center;justify-content:center;margin-right:8px;flex-shrink:0}
+.tt-tpl-item.selected .tt-check{background:var(--primary);border-color:var(--primary);color:#fff;font-size:10px}
+.tt-empty{padding:20px 14px;font-size:13px;color:var(--text-placeholder);text-align:center}
+.tt-footer{display:flex;gap:10px;padding:10px 16px;border-top:1px solid var(--border-light);flex-shrink:0;padding-bottom:calc(10px + var(--safe-bottom))}
+.tt-btn{flex:1;height:40px;border-radius:var(--radius-md);border:none;font-size:14px;cursor:pointer}
+.tt-btn-clear{background:var(--bg-gray);color:var(--text-secondary)}
+.tt-btn-confirm{background:var(--primary);color:#fff}
+.tt-btn:active{opacity:0.8}
+.inline-filter-bar{display:flex;align-items:center;padding:4px 12px 8px;background:var(--bg-white);border-bottom:1px solid var(--border-light);gap:0}
+.filter-dropdown{position:relative;display:flex;align-items:center;gap:4px;padding:8px 10px;font-size:13px;color:var(--text-secondary);cursor:pointer;user-select:none}
+.filter-dropdown svg{width:12px;height:12px;color:var(--text-tertiary);transition:transform 0.2s}
+.filter-dropdown.active svg{transform:rotate(180deg)}
+.filter-dropdown-menu{display:none;position:absolute;top:calc(100% + 4px);left:0;background:var(--bg-white);border:1px solid var(--border-light);border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.12);min-width:120px;z-index:50;overflow:hidden}
+.filter-dropdown.active .filter-dropdown-menu{display:block}
+.dropdown-item{padding:10px 14px;font-size:13px;color:var(--text-primary);cursor:pointer}
+.dropdown-item:active{background:var(--bg-gray)}
+.dropdown-item.active{color:var(--primary);background:var(--primary-light)}
+.date-menu{padding:12px;min-width:220px}
+.date-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.date-row input{flex:1;padding:6px 8px;border:1px solid var(--border-color);border-radius:6px;font-size:12px;outline:none}
+.date-row input:focus{border-color:var(--primary)}
+.date-row span{color:var(--text-tertiary);font-size:12px}
+.date-actions{display:flex;gap:8px;justify-content:flex-end}
+.date-actions button{padding:5px 14px;border:1px solid var(--border-color);border-radius:6px;font-size:12px;cursor:pointer;background:var(--bg-white);color:var(--text-secondary)}
+.date-actions button:last-child{background:var(--primary);color:#fff;border-color:var(--primary)}
+.date-actions button:active{opacity:0.8}
+.filter-action-btn{margin-left:auto;padding:6px 14px;background:var(--primary-light);color:var(--primary);border-radius:14px;font-size:13px;cursor:pointer}
+.filter-action-btn:active{opacity:0.8}
+.list-container{padding:8px 12px}
+.list-card{background:var(--bg-white);border-radius:var(--radius-md);margin-bottom:10px;padding:14px 14px 10px;box-shadow:var(--shadow-sm);cursor:pointer;transition:transform 0.15s;position:relative;overflow:hidden}
+.list-card:active{transform:scale(0.98)}
+.list-card.unread{border-left:3px solid var(--primary)}
+.list-card.read{border-left:3px solid transparent}.list-card.recalled{cursor:default;border-left:3px solid #d9d9d9}.list-card.recalled .card-title{color:#bfbfbf;text-decoration:line-through}.list-card.recalled .card-body{color:#bfbfbf}.list-card.recalled .card-stats{opacity:0.5}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.card-title{font-size:15px;font-weight:600;color:var(--text-primary);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-right:8px}
+.card-fav{color:var(--text-tertiary);cursor:pointer;flex-shrink:0;font-size:18px}
+.card-fav.active{color:var(--warning)}
+.card-tags{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:3px;font-size:11px;line-height:1.4}
+.tag-blue{background:var(--primary-light);color:var(--primary)}
+.tag-green{background:#e6fffb;color:var(--success)}
+.tag-orange{background:#fff7e6;color:var(--warning)}
+.tag-red{background:#fff1f0;color:var(--danger)}
+.tag-gray{background:var(--bg-gray);color:var(--text-tertiary)}
+.tag-purple{background:#f9f0ff;color:#722ed1}
+.card-body{font-size:13px;color:var(--text-secondary);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:8px;line-height:1.6}
+.card-meta{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--text-tertiary);padding-top:8px;border-top:1px solid var(--border-light)}
+.card-meta .meta-left{display:flex;align-items:center;gap:12px}
+.card-meta .meta-item{display:flex;align-items:center;gap:3px}
+.card-meta svg{width:12px;height:12px}
+.card-meta .operator{color:var(--text-secondary)}
+.card-stats{display:flex;align-items:center;gap:12px}
+.card-stat{display:flex;align-items:center;gap:3px;color:var(--text-tertiary);font-size:12px}
+.card-stat svg{width:13px;height:13px}
+.card-stat.comment{color:var(--primary)}
+.card-stat.read{color:var(--success)}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 40px;color:var(--text-tertiary)}
+.empty-state .empty-icon{font-size:64px;margin-bottom:16px;opacity:0.6}
+.empty-state .empty-text{font-size:14px;margin-bottom:20px}
+.detail-page{position:absolute;top:0;left:0;right:0;bottom:0;background:var(--bg-page);z-index:200;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.3s ease}
+.detail-page.active{transform:translateX(0)}
+.detail-header{background:var(--bg-white);border-bottom:1px solid var(--border-light);flex-shrink:0}
+.detail-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg-white)}
+.detail-footer{background:var(--bg-white);border-top:1px solid var(--border-light);padding:10px 16px;display:flex;gap:10px;flex-shrink:0;padding-bottom:calc(10px + var(--safe-bottom))}
+.detail-btn{flex:1;height:40px;border-radius:var(--radius-md);border:none;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px}
+.detail-btn-primary{background:var(--primary);color:#fff}
+.detail-btn-default{background:var(--bg-gray);color:var(--text-secondary);border:1px solid var(--border-color)}
+.detail-section{background:var(--bg-white);margin:10px 12px;border-radius:var(--radius-md);overflow:hidden}
+.detail-section-title{padding:12px 14px 8px;font-size:13px;font-weight:600;color:var(--text-primary);display:flex;align-items:center;justify-content:space-between}
+.detail-field{display:flex;padding:8px 14px;font-size:13px}
+.detail-field .field-label{width:80px;color:var(--text-tertiary);flex-shrink:0}
+.detail-field .field-value{flex:1;color:var(--text-primary);word-break:break-all;white-space:pre-wrap}
+.detail-status-row{display:flex;align-items:center;gap:8px;padding:12px 14px;background:var(--bg-gray);font-size:13px;color:var(--text-secondary)}
+.detail-status-row .status-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.detail-status-row .status-text{color:var(--text-primary);font-weight:500}
+.action-sheet-mask{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:400;display:none;opacity:0;transition:opacity 0.2s}
+.action-sheet-mask.active{display:block;opacity:1}
+.action-sheet{position:absolute;bottom:0;left:0;right:0;background:var(--bg-white);border-radius:var(--radius-lg) var(--radius-lg) 0 0;z-index:401;transform:translateY(100%);transition:transform 0.25s ease;padding-bottom:calc(10px + var(--safe-bottom))}
+.action-sheet.active{transform:translateY(0)}
+.action-sheet-title{text-align:center;padding:14px 16px;color:var(--text-tertiary);font-size:13px;border-bottom:1px solid var(--border-light)}
+.action-sheet-item{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;font-size:15px;color:var(--text-primary);border-bottom:1px solid var(--border-light)}
+.action-sheet-item:last-child{border-bottom:none}
+.action-sheet-item:active{background:var(--bg-gray)}
+.action-sheet-item svg{width:20px;height:20px;color:var(--text-secondary)}
+.action-sheet-cancel{margin-top:8px;background:var(--bg-gray);text-align:center;padding:14px;font-size:15px;color:var(--text-primary);cursor:pointer}
+.action-sheet-cancel:active{background:var(--border-light)}
+.detail-comments{background:var(--bg-white);margin:10px 12px;border-radius:var(--radius-md);overflow:hidden}
+.comment-item{padding:12px 14px;border-bottom:1px solid var(--border-light)}
+.comment-item:last-child{border-bottom:none}
+.comment-header{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.comment-avatar{width:28px;height:28px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500}
+.comment-name{font-size:13px;font-weight:500;color:var(--text-primary)}
+.comment-time{font-size:11px;color:var(--text-tertiary);margin-left:auto}
+.comment-content{font-size:13px;color:var(--text-secondary);line-height:1.5;padding-left:36px}
+.comment-input-bar{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--bg-white);border-top:1px solid var(--border-light);flex-shrink:0}
+.comment-input-bar input{flex:1;padding:8px 12px;border:1px solid var(--border-color);border-radius:6px;font-size:14px;outline:none;background:var(--bg-gray)}
+.comment-input-bar input:focus{border-color:var(--primary);background:var(--bg-white)}
+.comment-input-bar button{padding:8px 20px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer;flex-shrink:0}
+.comment-input-bar button:active{opacity:0.8}
+.comment-cancel{padding:8px 10px;border:none;background:none;color:var(--text-tertiary);font-size:13px;cursor:pointer;flex-shrink:0}
+.comment-cancel:active{opacity:0.7}
+.comment-ops{display:flex;justify-content:flex-end;gap:18px;padding:2px 0 0 36px}
+.comment-ops span{font-size:12px;cursor:pointer;user-select:none}
+.comment-ops .co-reply{color:var(--primary)}
+.comment-ops .co-del{color:var(--danger)}
+.mark-all-read{display:flex;align-items:center;justify-content:flex-end;padding:8px 16px;background:var(--bg-white);border-bottom:1px solid var(--border-light)}
+.mark-all-read-btn{font-size:13px;color:var(--primary);cursor:pointer;display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:14px}
+.mark-all-read-btn:active{background:var(--primary-light)}
+.detail-scope-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.detail-scope-tag{display:inline-flex;align-items:center;padding:3px 10px;background:var(--primary-light);color:var(--primary);border-radius:12px;font-size:12px}
+.detail-action-bar{background:var(--bg-white);border-top:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-around;padding:8px 0;flex-shrink:0}
+.detail-action-bar .action-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;cursor:pointer;color:var(--text-secondary);font-size:12px}
+.detail-action-bar .action-btn:active{background:var(--bg-gray)}
+.detail-action-bar .action-btn svg{width:22px;height:22px}
+.detail-action-bar .action-divider{width:1px;height:24px;background:var(--border-light)}
+.detail-title-section{background:var(--bg-white);padding:14px 14px 10px}
+.detail-title-main{font-size:17px;font-weight:600;color:var(--text-primary);line-height:1.4;margin-bottom:6px}
+.detail-meta-row{display:flex;align-items:center;font-size:12px;color:var(--text-tertiary);gap:16px}
+.detail-meta-row span{display:flex;align-items:center;gap:4px}
+.detail-user-row{background:var(--bg-white);padding:10px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border-light)}
+.detail-user-row .user-avatar{width:36px;height:36px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;flex-shrink:0}
+.detail-user-row .user-name{font-size:14px;font-weight:500;color:var(--text-primary)}
+.detail-user-row .user-actions{margin-left:auto;display:flex;align-items:center;gap:14px}
+.detail-user-row .user-action{display:flex;align-items:center;gap:4px;padding:4px 10px;background:var(--bg-gray);border-radius:14px;font-size:12px;color:var(--text-secondary);cursor:pointer;border:none}
+.detail-user-row .user-action svg{width:14px;height:14px}
+.detail-user-row .user-action.fav.active{color:var(--primary);background:var(--primary-light)}
+.detail-user-row .read-count{font-size:12px;color:var(--text-tertiary)}
+.detail-content-area{background:var(--bg-white);padding:4px 14px 14px}.fail-reason{margin:6px 0 4px;padding:10px 12px;border-radius:8px;background:rgba(255,77,79,.07);border:1px solid rgba(255,77,79,.28)}.fail-reason .fr-head{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--danger);margin-bottom:4px}.fail-reason .fr-head .fr-dot{width:6px;height:6px;border-radius:50%;background:var(--danger);display:inline-block}.fail-reason .fr-text{font-size:13px;color:var(--text-primary);line-height:1.55}
+.detail-field-row{display:flex;padding:10px 0;border-bottom:1px solid var(--border-light);font-size:14px}
+.detail-field-row:last-child{border-bottom:none}
+.detail-field-row .field-label{width:90px;color:var(--text-tertiary);flex-shrink:0}
+.detail-field-row .field-value{flex:1;color:var(--text-primary);word-break:break-all;white-space:pre-wrap}
+.copy-text-popup{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.75);color:#fff;padding:10px 20px;border-radius:8px;font-size:14px;z-index:9999;pointer-events:none;opacity:0;transition:opacity 0.2s}
+.copy-text-popup.show{opacity:1}
+.filter-modal-mask{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:300;display:none;opacity:0;transition:opacity 0.2s}
+.filter-modal-mask.active{display:block;opacity:1}
+.filter-modal{position:absolute;bottom:0;left:0;right:0;background:var(--bg-white);border-radius:var(--radius-lg) var(--radius-lg) 0 0;padding:20px 16px;padding-bottom:calc(20px + var(--safe-bottom));z-index:301;transform:translateY(100%);transition:transform 0.3s ease;max-height:80vh;overflow-y:auto}
+.filter-modal.active{transform:translateY(0)}
+.filter-modal-title{font-size:16px;font-weight:600;text-align:center;margin-bottom:16px}
+.filter-group{margin-bottom:16px}
+.filter-group-title{font-size:13px;color:var(--text-tertiary);margin-bottom:8px}
+.filter-options{display:flex;flex-wrap:wrap;gap:8px}
+.filter-option{padding:6px 14px;background:var(--bg-gray);border-radius:16px;font-size:13px;color:var(--text-secondary);cursor:pointer;border:1px solid transparent}
+.filter-option.active{background:var(--primary-light);color:var(--primary);border-color:var(--primary)}
+.filter-input{width:100%;padding:8px 12px;border:1px solid var(--border-color);border-radius:var(--radius-sm);font-size:14px;outline:none}
+.filter-input:focus{border-color:var(--primary)}
+.filter-date-row{display:flex;gap:8px;align-items:center}
+.filter-date-row .filter-input{flex:1}
+.filter-date-row .sep{color:var(--text-tertiary)}
+.template-tree{max-height:180px;overflow-y:auto;border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:8px}
+.tree-node{margin-bottom:4px}
+.tree-node-title{display:flex;align-items:center;gap:6px;padding:4px 6px;cursor:pointer;font-size:13px;border-radius:4px}
+.tree-node-title:hover{background:var(--bg-gray)}
+.tree-node-title .arrow{font-size:10px;color:var(--text-tertiary);transition:transform 0.2s}
+.tree-node-title .arrow.open{transform:rotate(90deg)}
+.tree-node-title .check{width:14px;height:14px;border:1px solid var(--border-color);border-radius:3px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:var(--primary);flex-shrink:0;background:var(--bg-white)}
+.tree-node-title .check.checked{background:var(--primary-light);border-color:var(--primary)}
+.tree-node-title .check.checked::after{content:'✓'}
+.tree-node-title .check.indeterminate{background:var(--primary-light);border-color:var(--primary);position:relative}
+.tree-node-title .check.indeterminate::after{content:'';position:absolute;width:8px;height:2px;background:var(--primary)}
+.tree-children{padding-left:18px;display:none}
+.tree-children.open{display:block}
+.filter-modal-actions{display:flex;gap:12px;margin-top:20px}
+.filter-modal-actions button{flex:1;height:40px;border-radius:var(--radius-md);border:none;font-size:14px;cursor:pointer}
+.filter-cancel{background:var(--bg-gray);color:var(--text-secondary);border:1px solid var(--border-color)!important}
+.filter-confirm{background:var(--primary);color:#fff}
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.75);color:#fff;padding:10px 20px;border-radius:8px;font-size:14px;z-index:9999;opacity:0;transition:opacity 0.2s;pointer-events:none}
+.toast.show{opacity:1}
+.status-dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:4px}
+.detail-more-btn{width:28px;height:28px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:50%;position:relative}
+.detail-more-btn:active{background:var(--bg-gray)}
+.detail-more-btn svg{width:20px;height:20px;color:var(--text-primary)}
+.detail-more-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--bg-white);border:1px solid var(--border-light);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.12);min-width:130px;z-index:500;overflow:hidden}
+.detail-more-menu.active{display:block}
+.more-menu-item{display:flex;align-items:center;gap:8px;padding:11px 16px;font-size:14px;color:var(--text-primary);cursor:pointer;border-bottom:1px solid var(--border-light)}
+.more-menu-item:last-child{border-bottom:none}
+.more-menu-item:active{background:var(--bg-gray)}
+.more-menu-item svg{width:16px;height:16px;color:var(--text-secondary)}
+.detail-more-mask{position:absolute;top:0;left:0;right:0;bottom:0;z-index:499;display:none}
+.detail-more-mask.active{display:block}
+.pub-action-bar{background:var(--bg-white);border-top:1px solid var(--border-light);display:flex;align-items:center;gap:8px;padding:10px 12px;flex-shrink:0;padding-bottom:calc(10px + var(--safe-bottom));flex-wrap:wrap}
+.pub-action-btn{height:38px;border-radius:var(--radius-md);border:1px solid var(--border-color);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;background:var(--bg-white);color:var(--text-secondary);white-space:nowrap}
+.pub-action-btn:active{opacity:0.7}
+.pub-action-btn svg{width:15px;height:15px}
+.pub-action-btn.default{flex:1;min-width:0}
+.pub-action-btn.primary{background:var(--primary);color:#fff;border-color:var(--primary);flex:1;min-width:0}
+.pub-action-btn.danger{color:var(--danger);border-color:var(--danger);flex:1;min-width:0}
+.pub-action-btn.warning{background:var(--warning);color:#fff;border-color:var(--warning);flex:1;min-width:0}
+.pub-action-btn.disabled,.pub-action-btn[disabled]{background:var(--bg-gray);color:var(--text-placeholder);border-color:var(--border-color);cursor:not-allowed}
+.pub-action-btn.disabled:active,.pub-action-btn[disabled]:active{opacity:1}
+.pub-action-btn.warning.disabled,.pub-action-btn.warning[disabled]{background:var(--bg-gray);color:var(--text-placeholder);border-color:var(--border-color)}
+.pub-status-banner{display:flex;align-items:center;gap:6px;padding:8px 14px;font-size:12px;color:var(--text-tertiary);background:var(--bg-gray)}
+.pub-status-banner .ban-dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+.publish-page{position:absolute;top:0;left:0;right:0;bottom:0;background:var(--bg-gray);z-index:600;transform:translateX(100%);transition:transform .3s ease;display:flex;flex-direction:column}
+.publish-page.active{transform:translateX(0)}
+.publish-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.pub-form-section{background:var(--bg-white);margin-bottom:8px}
+.pub-form-row{display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border-light)}
+.pub-form-row:last-child{border-bottom:none}
+.pub-form-label{font-size:14px;color:var(--text-primary);width:80px;flex-shrink:0}
+.pub-form-input{flex:1;border:none;outline:none;font-size:14px;color:var(--text-primary);background:transparent}
+.pub-form-textarea{flex:1;border:none;outline:none;font-size:14px;color:var(--text-primary);background:transparent;min-height:60px;resize:none;font-family:inherit}
+.pub-form-value{flex:1;font-size:14px;color:var(--text-secondary)}
+.pub-tpl-select{display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+.pub-tpl-arrow{color:var(--text-tertiary);font-size:12px}
+.pub-copy-btn{display:flex;align-items:center;gap:4px;padding:4px 8px;border:1px solid var(--border-color);border-radius:var(--radius-sm);font-size:12px;color:var(--primary);cursor:pointer;white-space:nowrap}
+.pub-copy-btn:active{opacity:0.7}
+.pub-copy-btn svg{width:13px;height:13px}
+.pub-receiver-tags{display:flex;flex-wrap:wrap;gap:6px}
+.pub-receiver-tag{background:var(--bg-gray);padding:3px 10px;border-radius:var(--radius-sm);font-size:12px;color:var(--text-secondary)}
+.pub-bottom-bar{background:var(--bg-white);border-top:1px solid var(--border-light);display:flex;gap:8px;padding:10px 12px;flex-shrink:0;padding-bottom:calc(10px + var(--safe-bottom))}
+.pub-bottom-btn{height:40px;border-radius:var(--radius-md);border:1px solid var(--border-color);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;background:var(--bg-white);color:var(--text-secondary);flex:1}
+.pub-bottom-btn:active{opacity:0.7}
+.pub-bottom-btn svg{width:16px;height:16px}
+.pub-bottom-btn.primary{background:var(--primary);color:#fff;border-color:var(--primary)}
+.pub-bottom-btn.outline{color:var(--primary);border-color:var(--primary)}
+.copy-published-modal{position:absolute;top:0;left:0;right:0;bottom:0;z-index:700;display:none;flex-direction:column;background:var(--bg-gray)}
+.copy-published-modal.active{display:flex}
+.cp-list{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px}
+.cp-card{background:var(--bg-white);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:8px;cursor:pointer;border:1px solid var(--border-light)}
+.cp-card:active{background:var(--bg-gray)}
+.cp-card-title{font-size:14px;font-weight:500;color:var(--text-primary);margin-bottom:4px}
+.cp-card-body{font-size:13px;color:var(--text-secondary);margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cp-card-meta{font-size:12px;color:var(--text-tertiary)}
+.fab{position:absolute;right:16px;bottom:calc(60px + var(--safe-bottom));width:52px;height:52px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(24,144,255,0.4);z-index:100;transition:transform .2s}
+.fab:active{transform:scale(0.92)}
+.fab svg{width:26px;height:26px}
+.tpl-select-mask{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:650;display:none}
+.tpl-select-mask.active{display:block}
+#tplSelectModal{z-index:651}
+.schedule-modal-mask{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:660;display:none}
+.schedule-modal-mask.active{display:block}
+.schedule-modal{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:300px;background:var(--bg-white);border-radius:12px;z-index:661;display:none;flex-direction:column;overflow:hidden}
+.schedule-modal.active{display:flex}
+.sch-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border-light)}
+.sch-title{font-size:16px;font-weight:500;color:var(--text-primary)}
+.sch-close{font-size:20px;color:var(--text-tertiary);cursor:pointer;padding:4px 8px}
+.sch-body{padding:16px}
+.sch-desc{font-size:14px;color:var(--text-secondary);margin-bottom:16px}
+.sch-row{display:flex;align-items:center;margin-bottom:14px}
+.sch-label{font-size:14px;color:var(--text-secondary);width:56px;flex-shrink:0}
+.sch-input{flex:1;height:36px;border:1px solid var(--border-color);border-radius:6px;padding:0 10px;font-size:14px;outline:none;background:var(--bg-white);color:var(--text-primary)}
+.sch-input:focus{border-color:var(--primary)}
+.sch-preview{font-size:13px;color:var(--text-secondary);margin-top:4px;margin-bottom:8px;text-align:center}
+.sch-preview .hl{color:var(--primary);font-weight:500}
+.sch-footer{display:flex;gap:10px;padding:10px 16px 14px;border-top:1px solid var(--border-light);justify-content:flex-end}
+.sch-btn{height:36px;padding:0 20px;border-radius:6px;border:none;font-size:14px;cursor:pointer}
+.sch-btn-cancel{background:var(--bg-gray);color:var(--text-secondary)}
+.sch-btn-confirm{background:var(--primary);color:#fff}
+.sch-btn:active{opacity:0.8}
+.share-mask{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:670;display:none}
+.share-mask.active{display:block}
+.share-modal{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:320px;background:var(--bg-white);border-radius:12px;z-index:671;display:none;flex-direction:column;overflow:hidden}
+.share-modal.active{display:flex}
+.share-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border-light)}
+.share-title{font-size:16px;font-weight:500;color:var(--text-primary)}
+.share-close{font-size:20px;color:var(--text-tertiary);cursor:pointer;padding:4px 8px}
+.share-body{padding:16px}
+.share-row{margin-bottom:16px}
+.share-label{font-size:14px;color:var(--text-secondary);margin-bottom:6px}
+.share-link-box{background:var(--bg-gray);border:1px solid var(--border-light);border-radius:6px;padding:8px 10px;font-size:12px;color:var(--text-tertiary);word-break:break-all;line-height:1.5}
+.share-radio-group{display:flex;flex-wrap:wrap;gap:12px}
+.share-radio{display:flex;align-items:center;gap:4px;cursor:pointer;font-size:13px;color:var(--text-secondary)}
+.share-radio input{margin:0;accent-color:var(--primary)}
+.share-date-input{width:100%;height:36px;border:1px solid var(--border-color);border-radius:6px;padding:0 10px;font-size:14px;outline:none;color:var(--text-primary)}
+.share-date-input:disabled{background:var(--bg-gray);color:var(--text-tertiary)}
+.share-hint{font-size:12px;color:var(--text-tertiary);margin-top:4px}
+.share-footer{padding:10px 16px 14px;border-top:1px solid var(--border-light);display:flex;justify-content:flex-end}
+.share-copy-btn{height:36px;padding:0 20px;border-radius:6px;border:none;font-size:14px;cursor:pointer;background:var(--primary);color:#fff}
+.share-copy-btn:active{opacity:0.8}
+
+.read-status-link{margin-left:8px;font-size:12px;color:var(--primary);cursor:pointer}
+.read-status-mask{position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:680;display:none}
+.read-status-modal{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:320px;max-height:420px;background:var(--bg-white);border-radius:12px;z-index:681;display:none;flex-direction:column;overflow:hidden}
+.read-status-modal.active,.read-status-mask.active{display:flex}
+.read-status-mask.active{display:block}
+.rs-header{display:flex;align-items:center;justify-content:center;padding:14px 16px;border-bottom:1px solid var(--border-light);position:relative}
+.rs-title{font-size:16px;font-weight:500;color:var(--text-primary)}
+.rs-close{position:absolute;right:14px;top:50%;transform:translateY(-50%);width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--text-tertiary);cursor:pointer}
+.rs-tabs{display:flex;border-bottom:1px solid var(--border-light)}
+.rs-tab{flex:1;text-align:center;padding:12px 0;font-size:14px;color:var(--text-secondary);cursor:pointer;position:relative}
+.rs-tab.active{color:var(--primary);font-weight:500}
+.rs-tab.active::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:2px;background:var(--primary);border-radius:1px}
+.rs-body{flex:1;overflow-y:auto;padding:0 16px}
+.rs-empty{padding:32px 16px;text-align:center;color:var(--text-placeholder);font-size:13px}
+.rs-user-item{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--border-light)}
+.rs-user-item:last-child{border-bottom:none}
+.rs-avatar{width:34px;height:34px;border-radius:50%;background:var(--primary-light);color:var(--primary);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500}
+.rs-info{flex:1}
+.rs-name{font-size:14px;color:var(--text-primary)}
+.rs-time{font-size:12px;color:var(--text-tertiary);margin-top:2px}
+</style>
+</head>
+<body>
+<div class="phone-frame">
+  <div class="status-bar"><span class="time">15:10</span><div class="icons"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M1 8a7 7 0 0 1 14 0M4.5 11.5a3.5 3.5 0 0 1 7 0"/><circle cx="8" cy="13" r="1" fill="currentColor"/></svg><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="5" width="3" height="8" rx="1"/><rect x="5" y="3" width="3" height="10" rx="1"/><rect x="9" y="1" width="3" height="12" rx="1"/><rect x="13" y="0" width="3" height="13" rx="1"/></svg><svg viewBox="0 0 24 12" fill="none" stroke="currentColor" stroke-width="1"><rect x="1" y="1" width="20" height="10" rx="2"/><rect x="3" y="3" width="14" height="6" rx="1" fill="currentColor"/><rect x="22" y="4" width="2" height="4" rx="0.5" fill="currentColor"/></svg></div></div>
+  <div class="nav-bar"><div class="nav-left" id="navLeft" style="display:none" onclick="closeDetail()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>返回</div><div class="nav-title" id="navTitle">我收到的</div><div class="nav-right" id="navRight" style="display:none" onclick="toggleMore()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></div></div>
+  <div class="content" id="content">
+    <div class="search-bar">
+      <div class="search-template-dropdown" id="searchTplDropdown" onclick="openTemplateTree()">
+        <span id="searchTplLabel">动力能源组</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" id="searchInput" placeholder="搜索" oninput="onSearchInput()"></div>
+    </div>
+    <div class="inline-filter-bar">
+      <div class="filter-dropdown" id="statusDropdown" onclick="toggleStatusDropdown()">
+        <span id="statusLabel">全部</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        <div class="filter-dropdown-menu" id="statusMenu">
+          <div class="dropdown-item" data-value="" onclick="setStatusFilter('')">全部</div>
+          <div class="dropdown-item" data-value="read" onclick="setStatusFilter('read')">已读</div>
+          <div class="dropdown-item" data-value="unread" onclick="setStatusFilter('unread')">未读</div>
+        </div>
+      </div>
+      <div class="filter-dropdown" id="pubTypeDropdown" onclick="togglePubTypeDropdown()">
+        <span id="pubTypeLabel">单次发布</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        <div class="filter-dropdown-menu" id="pubTypeMenu">
+          <div class="dropdown-item active" data-value="once" onclick="event.stopPropagation();setPubTypeFilter('once')">单次发布</div>
+          <div class="dropdown-item" data-value="periodic" onclick="event.stopPropagation();setPubTypeFilter('periodic')">周期发布</div>
+        </div>
+      </div>
+      <div class="filter-dropdown" id="dateDropdown" onclick="toggleDateDropdown()">
+        <span id="dateLabel">发布时间</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        <div class="filter-dropdown-menu date-menu" id="dateMenu">
+          <div class="date-row">
+            <input type="date" id="dateStart" onchange="setDateFilter()">
+            <span>至</span>
+            <input type="date" id="dateEnd" onchange="setDateFilter()">
+          </div>
+          <div class="date-actions">
+            <button onclick="clearDateFilter()">清除</button>
+            <button onclick="applyDateFilter()">确定</button>
+          </div>
+        </div>
+      </div>
+      <div class="filter-dropdown" id="publisherDropdown" onclick="togglePublisherDropdown()" style="display:none">
+        <span id="publisherLabel">发布人</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        <div class="filter-dropdown-menu" id="publisherMenu"></div>
+      </div>
+      <div class="filter-dropdown" id="favTplDropdown" onclick="toggleFavTplDropdown()" style="display:none">
+        <span id="favTplLabel">分类</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+        <div class="filter-dropdown-menu" id="favTplMenu"></div>
+      </div>
+      <div class="filter-action-btn" onclick="openFilter()">筛选</div>
+    </div>
+    <div class="list-container" id="listContainer"></div>
+  </div>
+  <div class="fab" id="fabBtn" onclick="openTplSelect()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+  <div class="tab-bar">
+    <div class="tab-item active" data-tab="received" onclick="switchTab('received')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg><span>我收到的</span></div>
+    <div class="tab-item" data-tab="published" onclick="switchTab('published')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span>我发布的</span></div>
+    <div class="tab-item" data-tab="favorites" onclick="switchTab('favorites')"><svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><span>我的收藏</span></div>
+  </div>
+  <div class="detail-page" id="detailPage">
+    <div class="detail-header"><div class="status-bar"><span class="time">15:10</span><div class="icons"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M1 8a7 7 0 0 1 14 0M4.5 11.5a3.5 3.5 0 0 1 7 0"/><circle cx="8" cy="13" r="1" fill="currentColor"/></svg><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="5" width="3" height="8" rx="1"/><rect x="5" y="3" width="3" height="10" rx="1"/><rect x="9" y="1" width="3" height="12" rx="1"/><rect x="13" y="0" width="3" height="13" rx="1"/></svg><svg viewBox="0 0 24 12" fill="none" stroke="currentColor" stroke-width="1"><rect x="1" y="1" width="20" height="10" rx="2"/><rect x="3" y="3" width="14" height="6" rx="1" fill="currentColor"/><rect x="22" y="4" width="2" height="4" rx="0.5" fill="currentColor"/></svg></div></div><div class="nav-bar"><div class="nav-left" onclick="closeDetail()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>返回</div><div class="nav-title">详情</div><div class="nav-right" style="display:flex;gap:8px;align-items:center"><div id="detailFavBtn" style="cursor:pointer" onclick="toggleDetailFav()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><div class="detail-more-btn" id="detailMoreBtn" onclick="toggleDetailMore(event)"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg><div class="detail-more-menu" id="detailMoreMenu"><div class="more-menu-item" onclick="event.stopPropagation();shareDetailLink()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>分享链接</div></div></div></div></div></div>
+    <div class="detail-body" id="detailBody"></div>
+    <div class="comment-input-bar" id="commentInputBar" style="display:none"><input type="text" id="commentInput" placeholder="请输入留言..."><button class="comment-cancel" id="commentCancelBtn" style="display:none" onclick="cancelCommentReply()">取消</button><button onclick="submitComment()">发送</button></div>
+    <div id="detailBottomBar"></div>
+    <div class="detail-more-mask" id="detailMoreMask" onclick="closeDetailMore()"></div>
+  </div>
+  <div class="publish-page" id="publishPage">
+    <div class="detail-header"><div class="status-bar"><span class="time">15:10</span><div class="icons"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M1 8a7 7 0 0 1 14 0M4.5 11.5a3.5 3.5 0 0 1 7 0"/><circle cx="8" cy="13" r="1" fill="currentColor"/></svg><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="5" width="3" height="8" rx="1"/><rect x="5" y="3" width="3" height="10" rx="1"/><rect x="9" y="1" width="3" height="12" rx="1"/><rect x="13" y="0" width="3" height="13" rx="1"/></svg><svg viewBox="0 0 24 12" fill="none" stroke="currentColor" stroke-width="1"><rect x="1" y="1" width="20" height="10" rx="2"/><rect x="3" y="3" width="14" height="6" rx="1" fill="currentColor"/><rect x="22" y="4" width="2" height="4" rx="0.5" fill="currentColor"/></svg></div></div><div class="nav-bar"><div class="nav-left" onclick="closePublishPage()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>返回</div><div class="nav-title" id="publishNavTitle">发布消息</div><div class="nav-right"></div></div></div>
+    <div class="publish-body" id="publishBody"></div>
+    <div class="pub-bottom-bar">
+      <button class="pub-bottom-btn" onclick="publishPageAction('draft')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>保存草稿</button>
+      <button class="pub-bottom-btn outline" onclick="publishPageAction('schedule')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>定时发布</button>
+      <button class="pub-bottom-btn primary" onclick="publishPageAction('publish')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg><span id="pubSubmitLabel">发布</span></button>
+    </div>
+  </div>
+  <div class="copy-published-modal" id="copyPublishedModal">
+    <div class="detail-header"><div class="status-bar"><span class="time">15:10</span><div class="icons"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M1 8a7 7 0 0 1 14 0M4.5 11.5a3.5 3.5 0 0 1 7 0"/><circle cx="8" cy="13" r="1" fill="currentColor"/></svg><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="5" width="3" height="8" rx="1"/><rect x="5" y="3" width="3" height="10" rx="1"/><rect x="9" y="1" width="3" height="12" rx="1"/><rect x="13" y="0" width="3" height="13" rx="1"/></svg><svg viewBox="0 0 24 12" fill="none" stroke="currentColor" stroke-width="1"><rect x="1" y="1" width="20" height="10" rx="2"/><rect x="3" y="3" width="14" height="6" rx="1" fill="currentColor"/><rect x="22" y="4" width="2" height="4" rx="0.5" fill="currentColor"/></svg></div></div><div class="nav-bar"><div class="nav-left" onclick="closeCopyPublishedModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>返回</div><div class="nav-title">复制已发布消息</div><div class="nav-right"></div></div></div>
+    <div class="cp-list" id="copyPublishedList"></div>
+  </div>
+  <div class="filter-modal-mask" id="filterMask" onclick="closeFilter()"></div>
+  <div class="filter-modal" id="filterModal"><div id="filterModalContent"></div></div>
+  <div class="action-sheet-mask" id="actionSheetMask" onclick="closeDetailActions()"></div>
+  <div class="action-sheet" id="actionSheet">
+    <div class="action-sheet-title">更多操作</div>
+    <div class="action-sheet-item" onclick="copyDetailLink()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      <span>复制链接</span>
+    </div>
+    <div class="action-sheet-item" onclick="shareDetailLink()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      <span>分享链接</span>
+    </div>
+    <div class="action-sheet-cancel" onclick="closeDetailActions()">取消</div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <div class="template-tree-mask" id="templateTreeMask" onclick="closeTemplateTree()"></div>
+  <div class="template-tree-modal" id="templateTreeModal">
+    <div class="tt-header">
+      <div class="tt-title">选择模版</div>
+      <div class="tt-close" onclick="closeTemplateTree()">×</div>
+    </div>
+    <div class="tt-main">
+      <div class="tt-col tt-col-cat" id="ttColCat">
+        <div class="tt-col-header">业务分类</div>
+      </div>
+      <div class="tt-col tt-col-content" id="ttColContent"></div>
+    </div>
+    <div class="tt-footer">
+      <button class="tt-btn tt-btn-clear" onclick="clearTemplateFilter()">清除</button>
+      <button class="tt-btn tt-btn-confirm" onclick="confirmTemplateFilter()">确定</button>
+    </div>
+  </div>
+  <div class="tpl-select-mask" id="tplSelectMask" onclick="closeTplSelect()"></div>
+  <div class="template-tree-modal" id="tplSelectModal">
+    <div class="tt-header">
+      <div class="tt-title">选择模版</div>
+      <div class="tt-close" onclick="closeTplSelect()">×</div>
+    </div>
+    <div class="tt-main">
+      <div class="tt-col tt-col-cat" id="tplSelColCat">
+        <div class="tt-col-header">业务分类</div>
+      </div>
+      <div class="tt-col tt-col-content" id="tplSelColContent"></div>
+    </div>
+    <div class="tt-footer">
+      <button class="tt-btn tt-btn-clear" onclick="closeTplSelect()">取消</button>
+      <button class="tt-btn tt-btn-confirm" onclick="confirmTplSelect()">确定</button>
+    </div>
+  </div>
+  <div class="schedule-modal-mask" id="scheduleModalMask" onclick="closeScheduleModal()"></div>
+  <div class="schedule-modal" id="scheduleModal">
+    <div class="sch-header">
+      <div class="sch-title">选择时间</div>
+      <div class="sch-close" onclick="closeScheduleModal()">×</div>
+    </div>
+    <div class="sch-body">
+      <div class="sch-desc">选择定时发布时间：</div>
+      <div class="sch-row">
+        <label class="sch-label">日期：</label>
+        <input type="date" class="sch-input" id="schDate" onchange="updateSchPreview()">
+      </div>
+      <div class="sch-row">
+        <label class="sch-label">时间：</label>
+        <input type="time" class="sch-input" id="schTime" onchange="updateSchPreview()">
+      </div>
+      <div class="sch-preview" id="schPreview"></div>
+    </div>
+    <div class="sch-footer">
+      <button class="sch-btn sch-btn-cancel" onclick="closeScheduleModal()">取消</button>
+      <button class="sch-btn sch-btn-confirm" onclick="confirmSchedule()">确定</button>
+    </div>
+  </div>
+  <div class="share-mask" id="shareMask" onclick="closeShareModal()"></div>
+  <div class="share-modal" id="shareModal">
+    <div class="share-header">
+      <div class="share-title">链接分享</div>
+      <div class="share-close" onclick="closeShareModal()">×</div>
+    </div>
+    <div class="share-body">
+      <div class="share-row">
+        <div class="share-label">链接：</div>
+        <div class="share-link-box" id="shareLinkUrl">https://platform.tzgt.com.cn/manufacture/#/receive?shareMsgId=1542917580133629952</div>
+      </div>
+      <div class="share-row">
+        <div class="share-label">有效期：</div>
+        <div class="share-radio-group">
+          <label class="share-radio"><input type="radio" name="shareExpire" value="0" onchange="onShareExpireChange()">永久</label>
+          <label class="share-radio"><input type="radio" name="shareExpire" value="24" onchange="onShareExpireChange()">24小时</label>
+          <label class="share-radio"><input type="radio" name="shareExpire" value="168" onchange="onShareExpireChange()">七天</label>
+          <label class="share-radio"><input type="radio" name="shareExpire" value="720" onchange="onShareExpireChange()">一个月</label>
+          <label class="share-radio"><input type="radio" name="shareExpire" value="custom" onchange="onShareExpireChange()" checked>自定义</label>
+        </div>
+      </div>
+      <div class="share-row">
+        <div class="share-label">到期日：</div>
+        <input type="date" class="share-date-input" id="shareExpireDate" onchange="updateShareHint()">
+        <div class="share-hint" id="shareHint">链接将在所设置的"到期日"后失效</div>
+      </div>
+    </div>
+    <div class="share-footer">
+      <button class="share-copy-btn" onclick="copyShareLink()">复制链接</button>
+    </div>
+  </div>
+</div>
+<script>
+var templateData={t1:{title:'交接班日志',path:'动力能源部/制水车间',allowRecall:true,recallTimeLimit:72,allowModify:true,modifyTimeLimit:168,fields:['班组','班次','运行记录'],receivers:['动力能源部','制水车间','甲班']},t2:{title:'水处理芯更换台账',path:'动力能源部/制水车间',allowRecall:true,recallTimeLimit:48,allowModify:true,modifyTimeLimit:72,fields:['更换日期','滤芯类型'],receivers:['动力能源部','制水车间']},t3:{title:'压泥记录',path:'动力能源部/制水车间',allowRecall:false,allowModify:true,modifyTimeLimit:24,fields:['压泥时间','压泥机编号'],receivers:['动力能源部','制水车间']},t4:{title:'制水车间报修指令',path:'动力能源部/制水车间',allowRecall:true,recallTimeLimit:12,allowModify:false,fields:['报修标题','报修等级'],receivers:['动力能源部','制水车间','维修组']},t5:{title:'挂牌对外信息发布',path:'动力能源部/制水车间',allowRecall:true,recallTimeLimit:24,allowModify:true,modifyTimeLimit:48,fields:['发布日期','内容'],receivers:['动力能源部','制水车间']},t6:{title:'网页操作记录',path:'动力能源部/煤气车间',allowRecall:false,allowModify:false,fields:['操作时间','操作类型'],receivers:['动力能源部','煤气车间']},t7:{title:'生产日报表',path:'动力能源部/制水车间',allowRecall:true,recallTimeLimit:48,allowModify:true,modifyTimeLimit:72,fields:['日期','产量'],receivers:['动力能源部','制水车间','全部人员']},t8:{title:'轧制参数记录',path:'轧钢生产',allowRecall:true,recallTimeLimit:24,allowModify:true,modifyTimeLimit:48,fields:['轧制日期','钢种'],receivers:['轧钢生产','轧钢车间']}};
+var templateTreeData=[{id:'dep1',name:'动力能源组',children:[{id:'cat1',name:'制水车间',children:[{id:'t1',name:'交接班日志'},{id:'t2',name:'水处理芯更换台账'},{id:'t3',name:'压泥记录'},{id:'t4',name:'制水车间报修指令'},{id:'t5',name:'挂牌对外信息发布'},{id:'t7',name:'生产日报表'}]},{id:'cat2',name:'煤气车间',children:[{id:'t6',name:'网页操作记录'}]}]},{id:'dep2',name:'轧钢生成组',children:[{id:'cat3',name:'轧钢车间',children:[{id:'t8',name:'轧制参数记录'}]}]}];
+var publishedData=[{id:'p1',publishType:'once',title:'交接班日志-2026-08-26',templateId:'t1',category:'动力能源部/制水车间',fieldValues:{'班组':'甲班','班次':'早班','运行记录':'设备正常运行'},status:'published',createTime:'2026-08-26 08:00',publisher:'张工',_receiverCount:5,commentCount:3,comments:[{id:'cp1',name:'张维涛',time:'2026-08-26 08:35',content:'收到，已安排人员核实'},{id:'cp2',name:'李泽锋',time:'2026-08-26 09:02',content:'好的，暂无问题'},{id:'cp3',name:'我',isMine:true,time:'2026-08-26 09:15',content:'回复 @李泽锋：我来复核一下数据'}],readCount:4,distributionScope:['动力能源部','制水车间','甲班'],readUsers:[{name:'张维涛',time:'2026-08-27 07:35'},{name:'李泽锋',time:'2026-08-27 07:42'},{name:'解佳冬',time:'2026-08-27 08:01'},{name:'王工',time:'2026-08-27 08:15'}],unreadUsers:[{name:'赵六'},{name:'孙工'}]},{id:'p5',publishType:'once',title:'轧制参数记录-草稿',templateId:'t8',category:'轧钢生产',fieldValues:{'轧制日期':'2026-08-27','钢种':'Q355B'},status:'draft',createTime:'2026-08-27 10:00',publisher:'孙工',distributionScope:['轧钢生产','轧钢车间']},{id:'p6',publishType:'once',title:'网页操作记录-已撤回',templateId:'t6',category:'动力能源部/煤气车间',fieldValues:{'操作时间':'2026-08-26 14:00','操作类型':'删除'},status:'recalled',createTime:'2026-08-26 14:00',publisher:'陈工',distributionScope:['动力能源部','煤气车间']},{id:'p7',publishType:'periodic',cycle:'周期 每日 17:00',title:'生产日报表-08-25',templateId:'t7',category:'动力能源部/制水车间',fieldValues:{'日期':'2026-08-25','产量':'1250吨'},status:'published',createTime:'2026-08-25 17:00',publisher:'张工',_receiverCount:8,commentCount:1,comments:[{id:'cp7',name:'徐云鹏',time:'2026-08-25 17:40',content:'数据已核对，无误'}],readCount:6,distributionScope:['动力能源部','制水车间','全部人员'],readUsers:[{name:'张维涛',time:'2026-08-25 17:05'},{name:'徐云鹏',time:'2026-08-25 17:12'},{name:'李泽锋',time:'2026-08-25 17:30'},{name:'解佳冬',time:'2026-08-25 18:02'},{name:'王工',time:'2026-08-25 18:20'},{name:'刘工',time:'2026-08-25 19:00'}],unreadUsers:[{name:'赵六'},{name:'孙工'}]},{id:'p11',publishType:'once',title:'挂牌对外信息发布-定时',templateId:'t5',category:'动力能源部/制水车间',fieldValues:{'发布日期':'2026-08-28','内容':'系统升级通知'},status:'scheduled',createTime:'2026-08-27 15:00',publisher:'张工',distributionScope:['动力能源部','制水车间']},{id:'p13',publishType:'periodic',cycle:'周期 每班 08:00',title:'交接班日志-周期草稿',templateId:'t1',category:'动力能源部/制水车间',fieldValues:{'班组':'甲班','班次':'早班','运行记录':'每班自动下发'},status:'draft',createTime:'2026-08-27 11:20',publisher:'张工',distributionScope:['动力能源部','制水车间','甲班']},{id:'p14',publishType:'periodic',cycle:'周期 每月 1日 09:00',title:'水处理芯更换台账-周期任务',templateId:'t2',category:'动力能源部/制水车间',fieldValues:{'更换日期':'每月1日','滤芯类型':'PP棉'},status:'recalled',createTime:'2026-08-24 09:00',publisher:'李工',distributionScope:['动力能源部','制水车间']},{id:'p15',publishType:'periodic',cycle:'周期 每日 22:00',title:'压泥记录-周期任务',templateId:'t3',category:'动力能源部/制水车间',fieldValues:{'压泥时间':'每日 22:00','压泥机编号':'P-01'},status:'failed',createTime:'2026-08-26 22:00',publisher:'王工',failReason:'接收人为空，自动发布失败',distributionScope:['动力能源部','制水车间']},{id:'p16',publishType:'once',title:'制水车间报修指令-发布失败',templateId:'t4',category:'动力能源部/制水车间',fieldValues:{'报修标题':'4#水泵异响','报修等级':'一般'},status:'failed',createTime:'2026-08-27 09:40',publisher:'赵工',failReason:'网络异常，消息推送失败',distributionScope:['动力能源部','制水车间','维修组']}];var receivedData=[{"id":"r1","title":"交接班日志-徐云鹏-2026-08-27","templateId":"t1","category":"动力能源部/制水车间","fieldValues":{"班组":"乙班","班次":"晚班","运行记录":"主要生产交接事项：1.临时互保安排徐云鹏等3人互保 安全由徐云鹏负责；2. 2#压泥机可进料，班中拉泥1车；3. 反洗多介质8/9/11/2；4. 雨水大量回收中；5.硫酸间灯明早上给修；6. 2#一级除盐水外送泵风扇有问题 当备用泵使用 尽量不启；7. 主控室滚动屏幕电价不准确需更改"},"createTime":"2026-08-27 07:23","publisher":"徐云鹏","isRead":false,"receiverCount":5,"commentCount":3,"readCount":3,"distributionScope":["动力能源部","制水车间","全部人员"],"comments":[{"id":"c1","name":"张维涛","time":"2026-08-27 07:30","content":"收到，已安排人员跟进"},{"id":"c2","name":"李泽锋","time":"2026-08-27 08:15","content":"2#压泥机已确认，可以正常进料"},{"id":"c3","name":"解佳冬","time":"2026-08-27 09:02","content":"硫酸间电灯已报修，预计上午修复"}]},{"id":"r2","title":"交接班日志-张维涛-2026-08-26","templateId":"t1","category":"动力能源部/制水车间","fieldValues":{"班组":"甲班","班次":"早班","运行记录":"1. 设备运行正常；2. 各项指标合格；3. 无异常情况"},"createTime":"2026-08-26 19:17","publisher":"张维涛","isRead":true,"receiverCount":5,"commentCount":1,"readCount":5,"distributionScope":["动力能源部","制水车间","甲班"],"comments":[{"id":"c1","name":"王工","time":"2026-08-26 20:00","content":"收到，本班次一切正常"}]},{"id":"r9","title":"交接班日志-张工-2026-08-23","templateId":"t1","category":"动力能源部/制水车间","fieldValues":{"班组":"甲班","班次":"早班","运行记录":"该消息已被发布人撤回"},"createTime":"2026-08-23 19:30","publisher":"张工","isRead":true,"isRecalled":true,"recallReason":"内容有误","recallTime":"2026-08-23 20:15","receiverCount":5,"commentCount":0,"readCount":0,"distributionScope":["动力能源部","制水车间","甲班"],"comments":[]}];
+var favoriteIds=[{"id":"p1","source":"published","favTime":"2026-08-26 09:20"},{"id":"p7","source":"published","favTime":"2026-08-25 18:40"},{"id":"r1","source":"received","favTime":"2026-08-27 07:50"},{"id":"r2","source":"received","favTime":"2026-08-27 08:05"}];
+var currentTab='received';
+var pubSubTab='once';
+var searchVal='';
+var navTitleMap={received:'我收到的',published:'我发布的',favorites:'我的收藏'};
+var filterState={received:{dateStart:'',dateEnd:'',templateIds:[],publisher:'',isRead:''},published:{status:'',category:'',templateIds:[],dateStart:'',dateEnd:''},favorites:{source:'',category:'',dateStart:'',dateEnd:'',templateId:''}};
+var tempFilter={};
+var currentDetailId=null;
+var currentDetailSource=null;
+var currentReadStatusTab='read';
+var replyState=null;
+function openReadStatusModal(){var data=currentDetailSource==='published'?publishedData:receivedData;var item=data.find(function(d){return d.id===currentDetailId});if(!item)return;currentReadStatusTab='read';renderReadStatusList(item);document.getElementById('readStatusMask').classList.add('active');document.getElementById('readStatusModal').classList.add('active')}
+function closeReadStatusModal(){document.getElementById('readStatusMask').classList.remove('active');document.getElementById('readStatusModal').classList.remove('active')}
+function switchReadStatusTab(tab){currentReadStatusTab=tab;var data=currentDetailSource==='published'?publishedData:receivedData;var item=data.find(function(d){return d.id===currentDetailId});renderReadStatusList(item)}
+function renderReadStatusList(item){var readArr=item.readUsers||[];var unreadArr=item.unreadUsers||[];document.getElementById('rsTabs').innerHTML='<div class=\"rs-tab '+(currentReadStatusTab==='read'?'active':'')+'\" data-tab=\"read\" onclick=\"switchReadStatusTab(\'read\')\">已读 ('+readArr.length+')</div><div class=\"rs-tab '+(currentReadStatusTab==='unread'?'active':'')+'\" data-tab=\"unread\" onclick=\"switchReadStatusTab(\'unread\')\">未读 ('+unreadArr.length+')</div>';var list=currentReadStatusTab==='read'?readArr:unreadArr;var html='';if(list.length===0){var emptyText=currentReadStatusTab==='read'?'暂无已读记录':'暂无未读记录';html='<div class=\"rs-empty\">'+emptyText+'</div>'}else{list.forEach(function(u){var timeHtml=u.time?'<div class=\"rs-time\">'+u.time+'</div>':'';html+='<div class=\"rs-user-item\"><div class=\"rs-avatar\">'+u.name.charAt(0)+'</div><div class=\"rs-info\"><div class=\"rs-name\">'+u.name+'</div>'+timeHtml+'</div></div>'})}document.getElementById('rsBody').innerHTML=html}
+function init(){updateTabBar();document.getElementById('navTitle').textContent=navTitleMap[currentTab];updateStatusMenu();updateStatusLabel();updateDateLabel();syncDateInputs();updateFilterBarVisibility();updatePubTypeLabel();updateFavCategoryLabel();updatePublisherLabel();updateTemplateFilterBtn();renderFilterSummary();renderList();document.addEventListener('click',function(e){if(!e.target.closest('.filter-dropdown'))closeAllDropdowns()})}
+var ttState={catId:'dep1',expandedGroups:{},selectedTplIds:[]};
+function openTemplateTree(){var fs=filterState.published;ttState={catId:ttState.catId||'dep1',expandedGroups:{},selectedTplIds:(fs.templateIds||[]).slice()};if(ttState.selectedTplIds.length>0){templateTreeData.forEach(function(c){if(c.children)c.children.forEach(function(g){if(g.children)g.children.forEach(function(t){if(ttState.selectedTplIds.indexOf(t.id)>=0)ttState.expandedGroups[g.id]=true})})})}renderTTCols();document.getElementById('templateTreeMask').classList.add('active');document.getElementById('templateTreeModal').classList.add('active')}
+function closeTemplateTree(){document.getElementById('templateTreeMask').classList.remove('active');document.getElementById('templateTreeModal').classList.remove('active')}
+function renderTTCols(){var catCol=document.getElementById('ttColCat');catCol.innerHTML='<div class="tt-col-header">业务分类</div>';templateTreeData.forEach(function(n){var active=ttState.catId===n.id;catCol.innerHTML+='<div class="tt-cat-item '+(active?'active':'')+'" onclick="selectTTCat(\''+n.id+'\')">'+n.name+'<span class="tt-arrow">'+(active?'▼':'▲')+'</span></div>'});var contentCol=document.getElementById('ttColContent');if(!ttState.catId){contentCol.innerHTML='<div class="tt-empty">请选择业务分类</div>';return}var cat=templateTreeData.find(function(n){return n.id===ttState.catId});if(!cat||!cat.children||cat.children.length===0){contentCol.innerHTML='<div class="tt-empty">暂无数据</div>';return}var html='';cat.children.forEach(function(g){var expanded=ttState.expandedGroups[g.id];html+='<div class="tt-group-item '+(expanded?'expanded':'')+'" onclick="toggleTTGroup(\''+g.id+'\')">'+g.name+'<span class="tt-arrow">▼</span></div>';if(expanded&&g.children){g.children.forEach(function(t){var checked=ttState.selectedTplIds.indexOf(t.id)>=0;html+='<div class="tt-tpl-item '+(checked?'selected':'')+'" onclick="selectTTemplate(\''+t.id+'\')"><span><span class="tt-check">'+(checked?'✓':'')+'</span>'+t.name+'</span></div>'})}});contentCol.innerHTML=html}
+function selectTTCat(id){ttState.catId=id;ttState.expandedGroups={};renderTTCols()}
+function toggleTTGroup(id){if(ttState.expandedGroups[id])delete ttState.expandedGroups[id];else ttState.expandedGroups[id]=true;renderTTCols()}
+function selectTTemplate(id){var idx=ttState.selectedTplIds.indexOf(id);if(idx>=0)ttState.selectedTplIds.splice(idx,1);else ttState.selectedTplIds.push(id);renderTTCols()}
+function clearTemplateFilter(){ttState.selectedTplIds=[];ttState.expandedGroups={};renderTTCols()}
+function confirmTemplateFilter(){filterState.published.templateIds=ttState.selectedTplIds.slice();updateTemplateFilterBtn();renderFilterSummary();renderList();closeTemplateTree();showToast('筛选已应用')}
+function togglePubTypeDropdown(){var menu=document.getElementById('pubTypeMenu');var dd=menu.parentElement;var isOpen=dd.classList.contains('active');closeAllDropdowns();if(!isOpen)dd.classList.add('active')}
+function setPubTypeFilter(val){closeAllDropdowns();if(pubSubTab===val)return;pubSubTab=val;if(val==='periodic'&&filterState.published.status==='scheduled'){filterState.published.status=''}updatePubTypeLabel();updateStatusMenu();updateStatusLabel();renderFilterSummary();renderList()}
+function updatePubTypeLabel(){var label=document.getElementById('pubTypeLabel');if(!label)return;label.textContent=pubSubTab==='periodic'?'周期发布':'单次发布';document.querySelectorAll('#pubTypeMenu .dropdown-item').forEach(function(el){el.classList.toggle('active',el.getAttribute('data-value')===pubSubTab)})}
+function updateTabBar(){document.querySelectorAll('.tab-item').forEach(function(el){el.classList.toggle('active',el.getAttribute('data-tab')===currentTab)})}
+function switchTab(tab){currentTab=tab;searchVal='';document.getElementById('searchInput').value='';document.getElementById('navTitle').textContent=navTitleMap[tab];updateTabBar();updateStatusMenu();updateStatusLabel();updateDateLabel();syncDateInputs();updateFilterBarVisibility();updatePubTypeLabel();updateFavCategoryLabel();updatePublisherLabel();renderFilterSummary();renderList();updateTemplateFilterBtn()}
+function updateTemplateFilterBtn(){var dd=document.getElementById('searchTplDropdown');var label=document.getElementById('searchTplLabel');if(!dd)return;if(currentTab==='favorites'){dd.style.display='none';return}dd.style.display='flex';var fs=filterState.published;if(fs.templateIds&&fs.templateIds.length>0){dd.classList.add('active');var names=[];templateTreeData.forEach(function(c){if(c.children)c.children.forEach(function(g){if(g.children)g.children.forEach(function(t){if(fs.templateIds.indexOf(t.id)>=0)names.push(t.name)})})});if(names.length<=1){label.textContent=names[0]||'已选模版'}else{label.textContent='已选'+names.length+'个模版'}}else{dd.classList.remove('active');label.textContent=ttState.catId?(function(){var c=templateTreeData.find(function(n){return n.id===ttState.catId});return c?c.name:'选择模版'})():'选择模版'}}
+function updateStatusMenu(){var menu=document.getElementById('statusMenu');if(!menu)return;if(currentTab==='published'){var ph='<div class="dropdown-item" data-value="" onclick="setStatusFilter(\')">全部</div><div class="dropdown-item" data-value="published" onclick="setStatusFilter(\'published\')">已发布</div><div class="dropdown-item" data-value="draft" onclick="setStatusFilter(\'draft\')">草稿</div><div class="dropdown-item" data-value="recalled" onclick="setStatusFilter(\'recalled\')">已撤回</div><div class="dropdown-item" data-value="failed" onclick="setStatusFilter(\'failed\')">发布失败</div>';if(pubSubTab==='once'){ph+='<div class="dropdown-item" data-value="scheduled" onclick="setStatusFilter(\'scheduled\')">定时待发布</div>'}menu.innerHTML=ph}else if(currentTab==='favorites'){menu.innerHTML='<div class="dropdown-item" data-value="" onclick="setStatusFilter(\'\')">全部</div><div class="dropdown-item" data-value="published" onclick="setStatusFilter(\'published\')">我发布的</div><div class="dropdown-item" data-value="received" onclick="setStatusFilter(\'received\')">我收到的</div>'}else{menu.innerHTML='<div class="dropdown-item" data-value="" onclick="setStatusFilter(\'\')">全部</div><div class="dropdown-item" data-value="read" onclick="setStatusFilter(\'read\')">已读</div><div class="dropdown-item" data-value="unread" onclick="setStatusFilter(\'unread\')">未读</div>'}}
+function onSearchInput(){searchVal=document.getElementById('searchInput').value.trim();renderList()}
+function toggleStatusDropdown(){var menu=document.getElementById('statusMenu');var dd=menu.parentElement;var isOpen=dd.classList.contains('active');closeAllDropdowns();if(!isOpen)dd.classList.add('active')}
+function syncDateInputs(){var fs=filterState[currentTab];var ds=document.getElementById('dateStart');var de=document.getElementById('dateEnd');if(ds)ds.value=fs.dateStart||'';if(de)de.value=fs.dateEnd||''}
+function toggleDateDropdown(){var menu=document.getElementById('dateMenu');var dd=menu.parentElement;var isOpen=dd.classList.contains('active');closeAllDropdowns();if(!isOpen)dd.classList.add('active')}
+function closeAllDropdowns(){document.querySelectorAll('.filter-dropdown.active').forEach(function(el){el.classList.remove('active')})}
+function toggleFavTplDropdown(){var menu=document.getElementById('favTplMenu');var dd=menu.parentElement;var isOpen=dd.classList.contains('active');closeAllDropdowns();if(!isOpen){updateFavCategoryMenu();dd.classList.add('active')}}
+function updateFavTplMenu(){var menu=document.getElementById('favTplMenu');var tplIds=[];favoriteIds.forEach(function(fav){var data=fav.source==='published'?publishedData:receivedData;var item=data.find(function(d){return d.id===fav.id});if(item&&tplIds.indexOf(item.templateId)<0)tplIds.push(item.templateId)});var html='<div class="dropdown-item" data-value="" onclick="setFavTplFilter(\'\')">全部</div>';tplIds.forEach(function(id){var tpl=templateData[id]||{};html+='<div class="dropdown-item" data-value="'+id+'" onclick="setFavTplFilter(\''+id+'\')">'+(tpl.title||id)+'</div>'});menu.innerHTML=html;var cur=filterState.favorites.templateId;menu.querySelectorAll('.dropdown-item').forEach(function(el){el.classList.toggle('active',el.getAttribute('data-value')===cur)})}
+function setFavCategoryFilter(val){filterState.favorites.category=val;updateFavCategoryLabel();closeAllDropdowns();renderList()}
+function updateFavCategoryLabel(){var label=document.getElementById('favTplLabel');if(!label)return;label.textContent=filterState.favorites.category||'分类'}
+function setStatusFilter(val){closeAllDropdowns();if(currentTab==='received'){filterState.received.isRead=val}else if(currentTab==='published'){filterState.published.status=val}else if(currentTab==='favorites'){filterState.favorites.source=val}updateStatusLabel();renderList()}
+function updateStatusLabel(){var label=document.getElementById('statusLabel');if(!label)return;var v;if(currentTab==='received'){v=filterState.received.isRead;label.textContent=v==='read'?'已读':v==='unread'?'未读':'全部'}else if(currentTab==='published'){v=filterState.published.status;label.textContent=v==='published'?'已发布':v==='draft'?'草稿':v==='recalled'?'已撤回':v==='failed'?'发布失败':v==='scheduled'?'定时待发布':'全部'}else if(currentTab==='favorites'){v=filterState.favorites.source;label.textContent=v==='published'?'我发布的':v==='received'?'我收到的':'来源'}else{label.textContent='全部'}var items=document.querySelectorAll('#statusMenu .dropdown-item');items.forEach(function(el){var dv=el.getAttribute('data-value');el.classList.toggle('active',dv===v)})}
+function updateFilterBarVisibility(){var dateDD=document.getElementById('dateDropdown');var fsBtn=document.querySelector('.filter-action-btn');var favTplDD=document.getElementById('favTplDropdown');var searchTplDD=document.getElementById('searchTplDropdown');var pubTypeDD=document.getElementById('pubTypeDropdown');var publisherDD=document.getElementById('publisherDropdown');if(pubTypeDD)pubTypeDD.style.display=(currentTab==='published')?'flex':'none';if(publisherDD)publisherDD.style.display=(currentTab==='received')?'flex':'none';if(currentTab==='favorites'){dateDD.style.display='flex';fsBtn.style.display='none';favTplDD.style.display='flex';searchTplDD.style.display='none'}else{dateDD.style.display='flex';fsBtn.style.display='none';favTplDD.style.display='none';searchTplDD.style.display='flex'}}
+function togglePublisherDropdown(){var menu=document.getElementById('publisherMenu');var dd=menu.parentElement;var isOpen=dd.classList.contains('active');closeAllDropdowns();if(!isOpen){updatePublisherMenu();dd.classList.add('active')}}
+function updatePublisherMenu(){var menu=document.getElementById('publisherMenu');var publishers=[];receivedData.forEach(function(i){if(i.publisher&&publishers.indexOf(i.publisher)<0)publishers.push(i.publisher)});publishers.sort();var html='<div class="dropdown-item" data-value="" onclick="setPublisherFilter(\'\')">全部</div>';publishers.forEach(function(p){html+='<div class="dropdown-item" data-value="'+p+'" onclick="setPublisherFilter(\''+p+'\')">'+p+'</div>'});menu.innerHTML=html;var cur=filterState.received.publisher;menu.querySelectorAll('.dropdown-item').forEach(function(el){el.classList.toggle('active',el.getAttribute('data-value')===cur)})}
+function setPublisherFilter(val){filterState.received.publisher=val;updatePublisherLabel();closeAllDropdowns();renderList()}
+function updatePublisherLabel(){var label=document.getElementById('publisherLabel');if(!label)return;label.textContent=filterState.received.publisher||'发布人'}
+function setDateFilter(){var s=document.getElementById('dateStart').value;var e=document.getElementById('dateEnd').value;if(currentTab==='received'){filterState.received.dateStart=s;filterState.received.dateEnd=e;updateDateLabel()}else if(currentTab==='published'){filterState.published.dateStart=s;filterState.published.dateEnd=e;updateDateLabel()}else if(currentTab==='favorites'){filterState.favorites.dateStart=s;filterState.favorites.dateEnd=e;updateDateLabel()}}
+function clearDateFilter(){document.getElementById('dateStart').value='';document.getElementById('dateEnd').value='';if(currentTab==='received'){filterState.received.dateStart='';filterState.received.dateEnd='';updateDateLabel();renderList()}else if(currentTab==='published'){filterState.published.dateStart='';filterState.published.dateEnd='';updateDateLabel();renderList()}else if(currentTab==='favorites'){filterState.favorites.dateStart='';filterState.favorites.dateEnd='';updateDateLabel();renderList()}closeAllDropdowns()}
+function applyDateFilter(){setDateFilter();closeAllDropdowns();renderList()}
+function updateDateLabel(){var label=document.getElementById('dateLabel');if(!label)return;var fs=filterState[currentTab];var s=fs.dateStart||'';var e=fs.dateEnd||'';if(s&&e){label.textContent=s+' ~ '+e}else if(s){label.textContent=s+' 起'}else if(e){label.textContent='至 '+e}else{label.textContent=currentTab==='favorites'?'收藏时间':'发布时间'}}
+function renderFilterSummary(){var c=document.getElementById('filterSummary');if(!c)return;var html='<span class="filter-label">筛选：</span>';var fs=filterState[currentTab];var has=false;if(currentTab==='received'){if(fs.isRead){has=true;html+='<span class="filter-chip" onclick="clearFilter(\'isRead\')">状态 '+(fs.isRead==='unread'?'未读':'已读')+'<span class="remove">×</span></span>'}if(fs.dateStart||fs.dateEnd){has=true;html+='<span class="filter-chip" onclick="clearFilter(\'date\')">发布时间 '+(fs.dateStart||'')+' ~ '+(fs.dateEnd||'')+'<span class="remove">×</span></span>'}if(fs.templateIds&&fs.templateIds.length>0){has=true;html+='<span class="filter-chip" onclick="clearFilter(\'template\')">模板 '+fs.templateIds.length+'项<span class="remove">×</span></span>'}if(fs.publisher){has=true;html+='<span class="filter-chip" onclick="clearFilter(\'publisher\')">发布人 '+fs.publisher+'<span class="remove">×</span></span>'}}else if(currentTab==='published'){if(fs.status){has=true;var sl=fs.status==='published'?'已发布':fs.status==='draft'?'草稿':fs.status==='recalled'?'已撤回':fs.status==='failed'?'发布失败':fs.status==='scheduled'?'定时待发布':'全部';html+='<span class="filter-chip" onclick="clearFilter(\'status\')">状态 '+sl+'<span class="remove">×</span></span>'}if(fs.dateStart||fs.dateEnd){has=true;html+='<span class="filter-chip" onclick="clearFilter(\'date\')">发布时间 '+(fs.dateStart||'')+' ~ '+(fs.dateEnd||'')+'<span class="remove">×</span></span>'}if(fs.templateIds&&fs.templateIds.length>0){has=true;html+='<span class="filter-chip" onclick="clearFilter(\'template\')">模版 '+fs.templateIds.length+'项<span class="remove">×</span></span>'}if(fs.category){has=true;html+='<span class="filter-chip" onclick="clearFilter(\'category\')">分类 '+fs.category+'<span class="remove">×</span></span>'}}else if(currentTab==='favorites'){if(fs.source){has=true;html+='<span class="filter-chip" onclick="clearFilter(\'source\')">来源 '+(fs.source==='published'?'我发布的':'我收到的')+'<span class="remove">×</span></span>'}if(fs.dateStart||fs.dateEnd){has=true;html+='<span class="filter-chip" onclick="clearFilter(\'date\')">收藏时间 '+(fs.dateStart||'')+' ~ '+(fs.dateEnd||'')+'<span class="remove">×</span></span>'}if(fs.category){has=true;html+='<span class="filter-chip" onclick="clearFilter(\'category\')">分类 '+fs.category+'<span class="remove">×</span></span>'}}if(!has)html+='<span style="color:var(--text-placeholder);font-size:12px;">暂无筛选条件</span>';c.innerHTML=html}
+function clearFilter(type){var fs=filterState[currentTab];if(currentTab==='received'){if(type==='isRead'){fs.isRead=''}else if(type==='date'){fs.dateStart='';fs.dateEnd='';updateDateLabel()}else if(type==='template'){fs.templateIds=[]}else if(type==='publisher'){fs.publisher='';updatePublisherLabel()}}else if(currentTab==='published'){if(type==='status'){fs.status=''}else if(type==='date'){fs.dateStart='';fs.dateEnd='';updateDateLabel()}else if(type==='category'){fs.category=''}else if(type==='template'){fs.templateIds=[];updateTemplateFilterBtn()}}else if(currentTab==='favorites'){if(type==='source'){fs.source='';updateStatusLabel()}else if(type==='date'){fs.dateStart='';fs.dateEnd='';updateDateLabel()}else if(type==='category'){fs.category='';updateFavCategoryLabel()}else if(type==='template'){fs.templateId='';updateFavCategoryLabel()}}renderFilterSummary();renderList()}
+function renderList(){if(currentTab==='received')renderReceivedList();else if(currentTab==='published')renderPublishedList();else renderFavoritesList()}
+function getReceivedList(){var fs=filterState.received;var list=receivedData.slice();if(searchVal)list=list.filter(function(i){return i.title.indexOf(searchVal)>=0});if(fs.isRead==='unread')list=list.filter(function(i){return!i.isRead});else if(fs.isRead==='read')list=list.filter(function(i){return i.isRead});if(fs.dateStart)list=list.filter(function(i){return i.createTime>=fs.dateStart});if(fs.dateEnd)list=list.filter(function(i){return i.createTime<=fs.dateEnd+' 23:59:59'});if(fs.templateIds&&fs.templateIds.length>0)list=list.filter(function(i){return fs.templateIds.indexOf(i.templateId)>=0});if(fs.publisher)list=list.filter(function(i){return i.publisher.indexOf(fs.publisher)>=0});list.sort(function(a,b){return b.createTime.localeCompare(a.createTime)});return list}
+function getPublishedList(){var fs=filterState.published;var list=publishedData.slice();list=list.filter(function(i){return (i.publishType||'once')===pubSubTab});if(searchVal)list=list.filter(function(i){return i.title.indexOf(searchVal)>=0});if(fs.status)list=list.filter(function(i){return i.status===fs.status});if(fs.category)list=list.filter(function(i){return i.category===fs.category});if(fs.templateIds&&fs.templateIds.length>0)list=list.filter(function(i){return fs.templateIds.indexOf(i.templateId)>=0});if(fs.dateStart)list=list.filter(function(i){return i.createTime>=fs.dateStart});if(fs.dateEnd)list=list.filter(function(i){return i.createTime<=fs.dateEnd+' 23:59:59'});list.sort(function(a,b){return b.createTime.localeCompare(a.createTime)});return list}
+function getFavoritesList(){var fs=filterState.favorites;var list=[];favoriteIds.forEach(function(fav){var data=fav.source==='published'?publishedData:receivedData;var item=data.find(function(d){return d.id===fav.id});if(item){list.push({id:item.id,source:fav.source,favTime:fav.favTime||'',title:item.title,templateId:item.templateId,category:item.category,fieldValues:item.fieldValues,status:item.status,createTime:item.createTime,publisher:item.publisher,isRead:item.isRead,_receiverCount:item._receiverCount||item.receiverCount,commentCount:item.commentCount||0,readCount:item.readCount||0})}});if(searchVal)list=list.filter(function(i){return i.title.indexOf(searchVal)>=0});if(fs.source)list=list.filter(function(i){return i.source===fs.source});if(fs.dateStart)list=list.filter(function(i){return (i.favTime||i.createTime)>=fs.dateStart});if(fs.dateEnd)list=list.filter(function(i){return (i.favTime||i.createTime)<=fs.dateEnd+' 23:59:59'});if(fs.category)list=list.filter(function(i){return i.category===fs.category});list.sort(function(a,b){return (b.favTime||b.createTime).localeCompare(a.favTime||a.createTime)});return list}
+function renderReceivedList(){var c=document.getElementById('listContainer');var list=getReceivedList();if(list.length===0){c.innerHTML='<div class="empty-state"><div class="empty-icon">📥</div><div class="empty-text">暂无收到的消息</div></div>';return}var html='';list.forEach(function(i){html+=renderReceivedCard(i)});c.innerHTML=html}
+function renderPublishedList(){var c=document.getElementById('listContainer');var list=getPublishedList();if(list.length===0){c.innerHTML='<div class="empty-state"><div class="empty-icon">📤</div><div class="empty-text">暂无发布记录</div></div>';return}var html='';list.forEach(function(i){html+=renderPublishedCard(i)});c.innerHTML=html}
+function renderFavoritesList(){var c=document.getElementById('listContainer');var list=getFavoritesList();if(list.length===0){c.innerHTML='<div class="empty-state"><div class="empty-icon">⭐</div><div class="empty-text">暂无收藏内容</div></div>';return}var html='';list.forEach(function(i){html+=renderFavoritesCard(i)});c.innerHTML=html}
+function renderReceivedCard(item){var tpl=templateData[item.templateId]||{};var isFav=favoriteIds.some(function(f){return f.id===item.id&&f.source==='received'});var isRecalled=item.isRecalled;var cardCls='list-card '+(isRecalled?'recalled':(item.isRead?'read':'unread'));var clickAct=isRecalled?'onclick="showToast(\'该消息已被撤回，不支持查看详情\')"':'onclick="openDetail(\''+item.id+'\',\'received\')"';var titleCls=isRecalled?'card-title recalled-title':'card-title';var statusTag=isRecalled?'<span class="tag tag-gray">已撤回</span>':'<span class="tag '+(item.isRead?'tag-gray':'tag-orange')+'">'+(item.isRead?'已读':'未读')+'</span>';return '<div class="'+cardCls+'" '+clickAct+'><div class="card-header"><div class="'+titleCls+'">'+item.title+'</div><div class="card-fav '+(isFav?'active':'')+'" onclick="event.stopPropagation();toggleFavorite(\''+item.id+'\',\'received\')">'+(isFav?'★':'☆')+'</div></div><div class="card-tags"><span class="tag tag-blue">'+(tpl.title||'未知模板')+'</span>'+statusTag+'</div><div class="card-body">'+truncateText(item.fieldValues,80)+'</div><div class="card-meta"><div class="meta-left"><div class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'+item.createTime.split(' ')[0]+'</div><div class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="operator">'+item.publisher+'</span></div></div><div class="card-stats"><div class="card-stat comment"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'+(item.commentCount||0)+'</div><div class="card-stat read"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'+(item.readCount||0)+'</div></div></div></div>'}
+function renderPublishedCard(item){var tpl=templateData[item.templateId]||{};var sdc='#52c41a';var sl='已发布';var stc='tag-green';if(item.status==='draft'){sdc='#8c8c8c';sl='草稿';stc='tag-gray'}else if(item.status==='recalled'){sdc='#fa8c16';sl='已撤回';stc='tag-orange'}else if(item.status==='scheduled'){sdc='#1890ff';sl='定时待发布';stc='tag-blue'}else if(item.status==='failed'){sdc='#ff4d4f';sl='发布失败';stc='tag-red'}var cycleTag=(item.publishType==='periodic'&&item.cycle)?'<span class="tag tag-purple">'+item.cycle+'</span>':'';var isFav=favoriteIds.some(function(f){return f.id===item.id&&f.source==='published'});var stats='<div class="card-stat comment"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'+(item.commentCount||0)+'</div><div class="card-stat read"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'+(item.readCount||0)+'</div>';return '<div class="list-card read" onclick="openDetail(\''+item.id+'\',\'published\')"><div class="card-header"><div class="card-title">'+item.title+'</div><div class="card-fav '+(isFav?'active':'')+'" onclick="event.stopPropagation();toggleFavorite(\''+item.id+'\',\'published\')">'+(isFav?'★':'☆')+'</div></div><div class="card-tags"><span class="tag tag-blue">'+(tpl.title||'未知模板')+'</span><span class="tag '+stc+'"><span class="status-dot" style="background:'+sdc+'"></span>'+sl+'</span>'+cycleTag+'</div><div class="card-body">'+truncateText(item.fieldValues,80)+'</div><div class="card-meta"><div class="meta-left"><div class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'+item.createTime.split(' ')[0]+'</div><div class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="operator">'+item.publisher+'</span></div></div><div class="card-stats">'+stats+'</div></div></div>'}
+function renderFavoritesCard(item){var tpl=templateData[item.templateId]||{};var sourceLabel=item.source==='published'?'我发布的':'我收到的';var isFav=true;var stats='<div class="card-stat comment"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'+(item.commentCount||0)+'</div><div class="card-stat read"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>'+(item.readCount||0)+'</div>';return '<div class="list-card read" onclick="openDetail(\''+item.id+'\',\''+item.source+'\')"><div class="card-header"><div class="card-title">'+item.title+'</div><div class="card-fav active" onclick="event.stopPropagation();toggleFavorite(\''+item.id+'\',\''+item.source+'\')">★</div></div><div class="card-tags"><span class="tag tag-blue">'+(tpl.title||'未知模板')+'</span><span class="tag '+(item.source==='published'?'tag-blue':'tag-orange')+'">'+sourceLabel+'</span></div><div class="card-body">'+truncateText(item.fieldValues,80)+'</div><div class="card-meta"><div class="meta-left"><div class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'+(item.favTime||item.createTime).split(' ')[0]+'</div><div class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="operator">'+(item.publisher||'-')+'</span></div></div><div class="card-stats">'+stats+'</div></div></div>'}
+function truncateText(fv,ml){if(!fv)return'';var keys=Object.keys(fv);if(keys.length===0)return'';var parts=[];keys.forEach(function(k){parts.push(k+'：'+fv[k])});var text=parts.join('；');if(text.length>ml)text=text.substring(0,ml)+'...';return text}
+function toggleFavorite(id,source){var idx=favoriteIds.findIndex(function(f){return f.id===id&&f.source===source});if(idx>=0){favoriteIds.splice(idx,1);showToast('已取消收藏')}else{var d=new Date();var ts=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)+' '+('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);favoriteIds.push({id:id,source:source,favTime:ts});showToast('已收藏')}renderList()}
+function openDetail(id,source){currentDetailId=id;currentDetailSource=source;var data=source==='published'?publishedData:receivedData;var item=data.find(function(d){return d.id===id});if(!item)return;if(item.isRecalled){showToast('该消息已被撤回，不支持查看详情');return}if(source==='received'&&!item.isRead){item.isRead=true;renderList();updateTabBar()}replyState=null;var tpl=templateData[item.templateId]||{};var body=document.getElementById('detailBody');var favBtn=document.getElementById('detailFavBtn');var isFav=favoriteIds.some(function(f){return f.id===id&&f.source===source});favBtn.innerHTML=isFav?'<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';var displayTitle=item.title;var titleParts=item.title.split('-');if(titleParts.length>=3){titleParts.pop();displayTitle=titleParts.join('-')}var titleHtml='<div class="detail-title-section"><div class="detail-title-main">'+displayTitle+'</div><div class="detail-meta-row"><span>发布时间：'+item.createTime+'</span><span>最近编辑：'+item.createTime+'</span></div></div>';var userHtml='<div class="detail-user-row"><div class="user-avatar">'+(item.publisher?item.publisher.charAt(0):'?')+'</div><div class="user-name">'+(item.publisher||'-')+'</div><div class="user-actions"><div class="user-action" onclick="openPublishPage()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>复制</div><div class="user-action fav '+(isFav?'active':'')+'" onclick="toggleDetailFav()">'+(isFav?'<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>')+'收藏</div><div class="read-count">阅读('+(item.readCount||item._receiverCount||0)+')'+(source==='published'&&item.status==='published'?'<span class="read-status-link" onclick="event.stopPropagation();openReadStatusModal()">查看阅读情况</span>':'')+'</div></div></div>';var scopeHtml='';if(item.distributionScope&&item.distributionScope.length>0){scopeHtml='<div class="detail-field-row"><div class="field-label">接收人</div><div class="field-value"><div class="detail-scope-tags">';item.distributionScope.forEach(function(s){scopeHtml+='<span class="detail-scope-tag">'+s+'</span>'});scopeHtml+='</div></div></div>'}var fieldsHtml='';if(item.fieldValues){Object.keys(item.fieldValues).forEach(function(k){fieldsHtml+='<div class="detail-field-row"><div class="field-label">'+k+'</div><div class="field-value">'+item.fieldValues[k]+'</div></div>'})}var commentsHtml='';
+var showComments=(source==='received')||(source==='published'&&item.status==='published');
+if(showComments){var comments=item.comments||[];var cCount=item.commentCount||comments.length;commentsHtml='<div class="detail-comments"><div class="detail-section-title" style="padding:12px 14px 8px">留言 ('+cCount+')</div>';if(comments.length>0){var canOp=(source==='published'&&item.status==='published');comments.forEach(function(c){var isMine=c.isMine===true||c.name==='我';var ops='';if(canOp){if(isMine){ops='<div class="comment-ops"><span class="co-del" onclick="delComment(&quot;'+c.id+'&quot;)">删除</span></div>'}else{ops='<div class="comment-ops"><span class="co-reply" onclick="replyComment(&quot;'+c.id+'&quot;,&quot;'+c.name+'&quot;)">回复</span></div>'}}commentsHtml+='<div class="comment-item"><div class="comment-header"><div class="comment-avatar">'+c.name.charAt(0)+'</div><div class="comment-name">'+c.name+'</div><div class="comment-time">'+c.time+'</div></div><div class="comment-content">'+c.content+'</div>'+ops+'</div>'})}else{commentsHtml+='<div style="padding:16px;color:var(--text-placeholder);text-align:center;font-size:13px">暂无留言</div>'}commentsHtml+='</div>'}var failHtml='';if(source==='published'&&item.status==='failed'&&item.failReason){failHtml='<div class="fail-reason"><div class="fr-head"><span class="fr-dot"></span>发布失败原因</div><div class="fr-text">'+item.failReason+'</div></div>'}var contentHtml='<div class="detail-content-area">'+scopeHtml+fieldsHtml+failHtml+'</div>'+commentsHtml;body.innerHTML=titleHtml+userHtml+contentHtml;closeDetailMore();var moreBtn=document.getElementById('detailMoreBtn');var showMore=(source==='received')||(source==='published'&&item.status==='published');moreBtn.style.display=showMore?'flex':'none';var commentBar=document.getElementById('commentInputBar');var bottomBar=document.getElementById('detailBottomBar');if(source==='received'){commentBar.style.display='flex';bottomBar.innerHTML=''}else{commentBar.style.display=(item.status==='published')?'flex':'none';bottomBar.innerHTML=renderPublishedActions(item,tpl)}document.getElementById('detailPage').classList.add('active')}
+function closeDetail(){closeDetailActions();closeDetailMore();document.getElementById('commentInputBar').style.display='none';document.getElementById('detailBottomBar').innerHTML='';document.getElementById('detailPage').classList.remove('active')}
+function toggleDetailFav(){if(!currentDetailId||!currentDetailSource)return;toggleFavorite(currentDetailId,currentDetailSource);var isFav=favoriteIds.some(function(f){return f.id===currentDetailId&&f.source===currentDetailSource});var favBtn=document.getElementById('detailFavBtn');favBtn.innerHTML=isFav?'<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';var favUserBtn=document.querySelector('.user-action.fav');if(favUserBtn){favUserBtn.classList.toggle('active',isFav);favUserBtn.innerHTML=(isFav?'<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>')+'收藏'}}
+function copyDetailText(){var text=document.getElementById('detailBody').innerText;if(navigator.clipboard){navigator.clipboard.writeText(text).then(function(){showToast('内容已复制')}).catch(function(){showToast('复制失败')})}else{showToast('内容已复制')}}
+function replyComment(cid,cname){if(currentDetailSource!=='published')return;replyState={cid:cid,name:cname};var bar=document.getElementById('commentInputBar');var cancel=document.getElementById('commentCancelBtn');var input=document.getElementById('commentInput');bar.style.display='flex';input.placeholder='回复 @'+cname+'：';if(cancel)cancel.style.display='inline-block';input.focus()}
+function cancelCommentReply(){replyState=null;openDetail(currentDetailId,currentDetailSource)}
+function delComment(cid){if(currentDetailSource!=='published')return;var data=publishedData;var item=data.find(function(d){return d.id===currentDetailId});if(!item||!item.comments)return;var idx=-1;item.comments.forEach(function(c,i){if(c.id===cid)idx=i});if(idx<0)return;var tc=item.comments[idx];if(!(tc.isMine===true||tc.name==='我')){showToast('只能删除自己的留言');return}item.comments.splice(idx,1);item.commentCount=item.comments.length;openDetail(currentDetailId,currentDetailSource);showToast('已删除该留言')}
+function submitComment(){var input=document.getElementById('commentInput');var val=input.value.trim();if(!val){showToast('请输入留言内容');return}var now=new Date();var timeStr=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');var data=currentDetailSource==='received'?receivedData:publishedData;var item=data.find(function(d){return d.id===currentDetailId});if(item){if(!item.comments)item.comments=[];var wasReply=!!replyState;var content=val;if(replyState){content='回复 @'+replyState.name+'：'+val}item.comments.push({id:'c_'+Date.now(),name:'我',isMine:true,time:timeStr,content:content});item.commentCount=item.comments.length;replyState=null;input.value='';openDetail(currentDetailId,currentDetailSource);showToast(wasReply?'回复成功':'留言成功')}}
+function showDetailActions(){document.getElementById('actionSheetMask').classList.add('active');document.getElementById('actionSheet').classList.add('active')}
+function closeDetailActions(){document.getElementById('actionSheetMask').classList.remove('active');document.getElementById('actionSheet').classList.remove('active')}
+function copyDetailLink(){closeDetailMore();showToast('链接已复制到剪贴板')}
+function shareDetailLink(){closeDetailMore();openShareModal()}
+function openShareModal(){var now=new Date();var d=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');var dateInput=document.getElementById('shareExpireDate');dateInput.value=d;dateInput.disabled=false;document.querySelector('input[name="shareExpire"][value="custom"]').checked=true;updateShareHint();document.getElementById('shareMask').classList.add('active');document.getElementById('shareModal').classList.add('active')}
+function closeShareModal(){document.getElementById('shareMask').classList.remove('active');document.getElementById('shareModal').classList.remove('active')}
+function onShareExpireChange(){var val=document.querySelector('input[name="shareExpire"]:checked').value;var dateInput=document.getElementById('shareExpireDate');if(val==='custom'){dateInput.disabled=false;var now=new Date();dateInput.value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')}else{dateInput.disabled=true;if(val==='0'){dateInput.value=''}else{var now=new Date();var future=new Date(now.getTime()+parseInt(val)*3600000);dateInput.value=future.getFullYear()+'-'+String(future.getMonth()+1).padStart(2,'0')+'-'+String(future.getDate()).padStart(2,'0')}}updateShareHint()}
+function updateShareHint(){var val=document.querySelector('input[name="shareExpire"]:checked').value;var hint=document.getElementById('shareHint');var dateInput=document.getElementById('shareExpireDate');if(val==='0'){hint.textContent='链接永久有效'}else if(dateInput.value){hint.textContent='链接将在 '+dateInput.value+' 后失效'}else{hint.textContent='链接将在所设置的"到期日"后失效'}}
+function copyShareLink(){var link=document.getElementById('shareLinkUrl').textContent;showToast('链接已复制到剪贴板');closeShareModal()}
+function markAllAsRead(){receivedData.forEach(function(d){d.isRead=true});renderList();updateTabBar();showToast('已全部标为已读')}
+function bindIsReadOptions(){bindFilterOptions('fIsReadOptions',tempFilter,'isRead')}
+function bindFilterOptions(containerId,filterObj,key){var c=document.getElementById(containerId);if(!c)return;c.querySelectorAll('.filter-option').forEach(function(el){el.addEventListener('click',function(){c.querySelectorAll('.filter-option').forEach(function(e){e.classList.remove('active')});el.classList.add('active');filterObj[key]=el.getAttribute('data-value')})})}
+function shareFromDetail(){openShareModal()}
+function viewOriginal(){showToast('跳转至原文...')}
+function toggleMore(){showToast('更多操作')}
+function isWithinTimeLimit(createTime,hours){var ct=new Date(createTime.replace(/-/g,'/'));var now=new Date();var diff=(now-ct)/(1000*60*60);return diff<=hours}
+function renderPublishedActions(item,tpl){var st=item.status;var ic={'recall':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>','modify':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>','cancel':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>','delete':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>','save':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>','clock':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>','publish':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>','edit':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>'};var banner='';var html='<div class="pub-action-bar">';if(st==='published'){var canRecall=tpl.allowRecall&&isWithinTimeLimit(item.createTime,tpl.recallTimeLimit);var canModify=tpl.allowModify&&isWithinTimeLimit(item.createTime,tpl.modifyTimeLimit);html+='<button class="pub-action-btn default'+(canModify?'':' disabled')+'"'+(canModify?' onclick="modifyPublished()"':' disabled')+'>'+ic.modify+'编辑</button>';html+='<button class="pub-action-btn warning'+(canRecall?'':' disabled')+'"'+(canRecall?' onclick="recallPublished()"':' disabled')+'>'+ic.recall+'撤回</button>';var notes=[];if(tpl.allowModify&&!canModify)notes.push('编辑时效已过（限'+tpl.modifyTimeLimit+'小时内）');if(!tpl.allowModify)notes.push('该模板不支持编辑');if(tpl.allowRecall&&!canRecall)notes.push('撤回时效已过（限'+tpl.recallTimeLimit+'小时内）');if(!tpl.allowRecall)notes.push('该模板不支持撤回');if(notes.length>0)banner='<div class="pub-status-banner"><span class="ban-dot" style="background:var(--warning)"></span>'+notes.join('；')+'</div>'}else if(st==='scheduled'){html+='<button class="pub-action-btn danger" onclick="cancelScheduled()">'+ic.cancel+'取消发布</button>';banner='<div class="pub-status-banner"><span class="ban-dot" style="background:var(--primary)"></span>定时待发布，到达设定时间后自动发布</div>'}else if(st==='recalled'){html+='<button class="pub-action-btn default" onclick="modifyPublished()">'+ic.modify+'编辑</button>';html+='<button class="pub-action-btn danger" onclick="deletePublished()">'+ic.delete+'删除</button>';banner='<div class="pub-status-banner"><span class="ban-dot" style="background:var(--warning)"></span>该消息已撤回</div>'}else if(st==='failed'){html+='<button class="pub-action-btn default" onclick="modifyPublished()">'+ic.modify+'编辑</button>';html+='<button class="pub-action-btn danger" onclick="deletePublished()">'+ic.delete+'删除</button>';banner='<div class="pub-status-banner"><span class="ban-dot" style="background:var(--danger)"></span>发布失败</div>'}else if(st==='draft'){html+='<button class="pub-action-btn danger" onclick="deletePublished()">'+ic.delete+'删除</button>';html+='<button class="pub-action-btn primary" onclick="publishNow()">'+ic.publish+'发布</button>';banner='<div class="pub-status-banner"><span class="ban-dot" style="background:var(--text-tertiary)"></span>草稿状态</div>'}if(item.publishType==='periodic'&&item.cycle){banner+='<div class="pub-status-banner"><span class="ban-dot" style="background:#722ed1"></span>'+item.cycle+'</div>'}html+='</div>';return banner+html}
+function toggleDetailMore(e){if(e)e.stopPropagation();var menu=document.getElementById('detailMoreMenu');var mask=document.getElementById('detailMoreMask');var isActive=menu.classList.contains('active');if(isActive){closeDetailMore()}else{menu.classList.add('active');mask.classList.add('active')}}
+function closeDetailMore(){document.getElementById('detailMoreMenu').classList.remove('active');document.getElementById('detailMoreMask').classList.remove('active')}
+function recallPublished(){var item=publishedData.find(function(d){return d.id===currentDetailId});if(!item)return;item.status='recalled';renderList();closeDetail();showToast('已撤回')}
+function modifyPublished(){var item=publishedData.find(function(d){return d.id===currentDetailId});if(!item)return;var tpl=templateData[item.templateId]||{};publishPageState.tplId=item.templateId;publishPageState.editId=item.id;publishPageState.fieldValues={};(tpl.fields||[]).forEach(function(f){publishPageState.fieldValues[f]=item.fieldValues[f]||''});closeDetail();document.getElementById('publishNavTitle').textContent='编辑消息 - '+tpl.title;document.getElementById('pubSubmitLabel').textContent='保存修改';renderPublishForm(tpl,item.title);document.getElementById('publishPage').classList.add('active')}
+function editScheduled(){closeDetailMore();showToast('进入编辑发布页面(原型演示)')}
+function cancelScheduled(){var item=publishedData.find(function(d){return d.id===currentDetailId});if(!item)return;item.status='draft';renderList();closeDetail();showToast('已取消定时发布，转为草稿')}
+function deletePublished(){var idx=publishedData.findIndex(function(d){return d.id===currentDetailId});if(idx<0)return;var favIdx=favoriteIds.findIndex(function(f){return f.id===currentDetailId&&f.source==='published'});if(favIdx>=0)favoriteIds.splice(favIdx,1);publishedData.splice(idx,1);renderList();closeDetail();showToast('已删除')}
+function saveDraft(){closeDetailMore();showToast('草稿已保存')}
+function schedulePublish(){closeDetailMore();showToast('进入定时发布设置(原型演示)')}
+function publishNow(){var item=publishedData.find(function(d){return d.id===currentDetailId});if(!item)return;item.status='published';var now=new Date();item.createTime=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');renderList();closeDetail();showToast('发布成功')}
+var publishPageState={tplId:null,fieldValues:{},editId:null};
+function openPublishPage(tplId){var tpl;if(tplId){tpl=templateData[tplId]}else if(currentDetailId&&currentDetailSource){var data=currentDetailSource==='published'?publishedData:receivedData;var item=data.find(function(d){return d.id===currentDetailId});if(item){tplId=item.templateId;tpl=templateData[tplId]||{}}}if(!tpl){return}publishPageState.tplId=tplId;publishPageState.editId=null;publishPageState.fieldValues={};var fields=tpl.fields||[];fields.forEach(function(f){publishPageState.fieldValues[f]=''});document.getElementById('publishNavTitle').textContent='发布消息 - '+tpl.title;document.getElementById('pubSubmitLabel').textContent='发布';renderPublishForm(tpl);if(currentDetailId)closeDetail();document.getElementById('publishPage').classList.add('active')}
+var tplSelState={catId:'dep1',expandedGroups:{},selectedTplId:null};
+function openTplSelect(){tplSelState={catId:'dep1',expandedGroups:{},selectedTplId:null};renderTplSelCols();document.getElementById('tplSelectMask').classList.add('active');document.getElementById('tplSelectModal').classList.add('active')}
+function closeTplSelect(){document.getElementById('tplSelectMask').classList.remove('active');document.getElementById('tplSelectModal').classList.remove('active')}
+function confirmTplSelect(){if(!tplSelState.selectedTplId){showToast('请选择一个模版');return}var id=tplSelState.selectedTplId;closeTplSelect();openPublishPage(id)}
+function renderTplSelCols(){var catCol=document.getElementById('tplSelColCat');catCol.innerHTML='<div class="tt-col-header">业务分类</div>';templateTreeData.forEach(function(n){var active=tplSelState.catId===n.id;catCol.innerHTML+='<div class="tt-cat-item '+(active?'active':'')+'" onclick="selectTplSelCat(\''+n.id+'\')">'+n.name+'<span class="tt-arrow">'+(active?'▼':'▲')+'</span></div>'});var contentCol=document.getElementById('tplSelColContent');if(!tplSelState.catId){contentCol.innerHTML='<div class="tt-empty">请选择业务分类</div>';return}var cat=templateTreeData.find(function(n){return n.id===tplSelState.catId});if(!cat||!cat.children||cat.children.length===0){contentCol.innerHTML='<div class="tt-empty">暂无数据</div>';return}var html='';cat.children.forEach(function(g){var expanded=tplSelState.expandedGroups[g.id];html+='<div class="tt-group-item '+(expanded?'expanded':'')+'" onclick="toggleTplSelGroup(\''+g.id+'\')">'+g.name+'<span class="tt-arrow">▼</span></div>';if(expanded&&g.children){g.children.forEach(function(t){var checked=tplSelState.selectedTplId===t.id;html+='<div class="tt-tpl-item '+(checked?'selected':'')+'" onclick="selectTplSelTemplate(\''+t.id+'\')"><span><span class="tt-check">'+(checked?'✓':'')+'</span>'+t.name+'</span></div>'})}});contentCol.innerHTML=html}
+function selectTplSelCat(id){tplSelState.catId=id;tplSelState.expandedGroups={};renderTplSelCols()}
+function toggleTplSelGroup(id){if(tplSelState.expandedGroups[id])delete tplSelState.expandedGroups[id];else tplSelState.expandedGroups[id]=true;renderTplSelCols()}
+function selectTplSelTemplate(id){tplSelState.selectedTplId=id;renderTplSelCols()}
+function renderPublishForm(tpl,titleValue){var body=document.getElementById('publishBody');var fields=tpl.fields||[];var receivers=tpl.receivers||[];var html='';html+='<div class="pub-form-section"><div class="pub-form-row"><div class="pub-form-label">标题</div><input class="pub-form-input" id="pubTitle" placeholder="请输入标题" value="'+(titleValue||(tpl.title+'-'+getCurrentDate()))+'"><div class="pub-copy-btn" onclick="openCopyPublishedModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>复制已发布</div></div></div>';html+='<div class="pub-form-section">';fields.forEach(function(f){var val=publishPageState.fieldValues[f]||'';if(f==='运行记录'||f==='内容'){html+='<div class="pub-form-row" style="align-items:flex-start"><div class="pub-form-label" style="padding-top:8px">'+f+'</div><textarea class="pub-form-textarea" id="pubField_'+f+'" placeholder="请输入'+f+'">'+val+'</textarea></div>'}else{html+='<div class="pub-form-row"><div class="pub-form-label">'+f+'</div><input class="pub-form-input" id="pubField_'+f+'" placeholder="请输入'+f+'" value="'+val+'"></div>'}});html+='</div>';html+='<div class="pub-form-section"><div class="pub-form-row" style="align-items:flex-start"><div class="pub-form-label" style="padding-top:8px">接收人</div><div class="pub-receiver-tags">';receivers.forEach(function(r){html+='<span class="pub-receiver-tag">'+r+'</span>'});html+='</div></div></div>';body.innerHTML=html}
+function getCurrentDate(){var now=new Date();return now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')}
+function closePublishPage(){publishPageState.editId=null;var lb=document.getElementById('pubSubmitLabel');if(lb)lb.textContent='发布';document.getElementById('publishPage').classList.remove('active')}
+function openCopyPublishedModal(){var tplId=publishPageState.tplId;var list=publishedData.filter(function(d){return d.templateId===tplId&&d.status==='published'});var c=document.getElementById('copyPublishedList');if(list.length===0){c.innerHTML='<div style="padding:40px 20px;text-align:center;color:var(--text-placeholder);font-size:14px">该模版暂无已发布消息</div>';document.getElementById('copyPublishedModal').classList.add('active');return}var html='';list.forEach(function(item){html+='<div class="cp-card" onclick="copyFromPublished(\''+item.id+'\')"><div class="cp-card-title">'+item.title+'</div><div class="cp-card-body">'+truncateText(item.fieldValues,60)+'</div><div class="cp-card-meta">'+item.publisher+' · '+item.createTime+'</div></div>'});c.innerHTML=html;document.getElementById('copyPublishedModal').classList.add('active')}
+function closeCopyPublishedModal(){document.getElementById('copyPublishedModal').classList.remove('active')}
+function copyFromPublished(itemId){var item=publishedData.find(function(d){return d.id===itemId});if(!item)return;publishPageState.fieldValues={};var tpl=templateData[publishPageState.tplId]||{};var fields=tpl.fields||[];fields.forEach(function(f){publishPageState.fieldValues[f]=item.fieldValues[f]||''});closeCopyPublishedModal();renderPublishForm(tpl);showToast('已复制内容，可修改后发布')}
+function publishPageAction(action){var tpl=templateData[publishPageState.tplId]||{};var title=document.getElementById('pubTitle').value.trim();if(!title){showToast('请输入标题');return}var fieldValues={};var fields=tpl.fields||[];fields.forEach(function(f){var el=document.getElementById('pubField_'+f);if(el)fieldValues[f]=el.value});var now=new Date();var timeStr=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');if(publishPageState.editId){var ei=publishedData.find(function(d){return d.id===publishPageState.editId});if(ei){ei.title=title;ei.fieldValues=fieldValues;if(action==='draft'){ei.status='draft'}else if(action==='publish'){ei.status='published';ei._receiverCount=tpl.receivers?tpl.receivers.length:(ei._receiverCount||0);if(ei.commentCount==null)ei.commentCount=0;if(ei.readCount==null)ei.readCount=0}closePublishPage();renderList();showToast(action==='draft'?'修改已存为草稿':'修改已保存并发布');return}}var newId='p_'+Date.now();var newItem={id:newId,publishType:pubSubTab||'once',title:title,templateId:publishPageState.tplId,category:tpl.path||'',fieldValues:fieldValues,distributionScope:tpl.receivers||[],publisher:'我',createTime:timeStr};if(action==='draft'){newItem.status='draft';publishedData.unshift(newItem);closePublishPage();renderList();showToast('草稿已保存')}else if(action==='publish'){newItem.status='published';newItem._receiverCount=tpl.receivers?tpl.receivers.length:0;newItem.commentCount=0;newItem.readCount=0;publishedData.unshift(newItem);closePublishPage();renderList();showToast('发布成功')}else if(action==='schedule'){openScheduleModal();return}}
+function openScheduleModal(){var now=new Date();var d=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');var t=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');document.getElementById('schDate').value=d;document.getElementById('schTime').value=t;updateSchPreview();document.getElementById('scheduleModalMask').classList.add('active');document.getElementById('scheduleModal').classList.add('active')}
+function closeScheduleModal(){document.getElementById('scheduleModalMask').classList.remove('active');document.getElementById('scheduleModal').classList.remove('active')}
+function updateSchPreview(){var d=document.getElementById('schDate').value;var t=document.getElementById('schTime').value;var p=document.getElementById('schPreview');if(!d||!t){p.innerHTML='';return}var parts=d.split('-');var md=parts[1]+'月'+parts[2]+'日';p.innerHTML='该公告将于 <span class="hl">'+md+' '+t+'</span> 发出'}
+function confirmSchedule(){var d=document.getElementById('schDate').value;var t=document.getElementById('schTime').value;if(!d){showToast('请选择日期');return}if(!t){showToast('请选择时间');return}var tpl=templateData[publishPageState.tplId]||{};var title=document.getElementById('pubTitle').value.trim();if(!title){showToast('请输入标题');return}var fieldValues={};var fields=tpl.fields||[];fields.forEach(function(f){var el=document.getElementById('pubField_'+f);if(el)fieldValues[f]=el.value});var newId='p_'+Date.now();var newItem={id:newId,title:title,templateId:publishPageState.tplId,category:tpl.path||'',fieldValues:fieldValues,distributionScope:tpl.receivers||[],publisher:'我',createTime:d+' '+t,scheduledTime:d+' '+t,status:'scheduled'};publishedData.unshift(newItem);closeScheduleModal();closePublishPage();renderList();showToast('已设置为定时发布')}
+function openFilter(){tempFilter=JSON.parse(JSON.stringify(filterState[currentTab]));var html='';if(currentTab==='received'){html='<div class="filter-modal-title">筛选 - 我收到的</div><div class="filter-group"><div class="filter-group-title">状态</div><div class="filter-options" id="fIsReadOptions"><div class="filter-option '+(tempFilter.isRead===''?'active':'')+'" data-value="">全部</div><div class="filter-option '+(tempFilter.isRead==='unread'?'active':'')+'" data-value="unread">未读</div><div class="filter-option '+(tempFilter.isRead==='read'?'active':'')+'" data-value="read">已读</div></div></div><div class="filter-group"><div class="filter-group-title">发布日期</div><div class="filter-date-row"><input type="date" class="filter-input" id="fDateStart" value="'+(tempFilter.dateStart||'')+'" onchange="tempFilter.dateStart=this.value;updateFilterBtn()"><span class="sep">至</span><input type="date" class="filter-input" id="fDateEnd" value="'+(tempFilter.dateEnd||'')+'" onchange="tempFilter.dateEnd=this.value;updateFilterBtn()"></div></div><div class="filter-group"><div class="filter-group-title">业务分类/模板</div><div class="template-tree" id="fTemplateTree"></div></div><div class="filter-group"><div class="filter-group-title">发布人</div><input type="text" class="filter-input" id="fPublisher" placeholder="输入发布人姓名" value="'+(tempFilter.publisher||'')+'" oninput="tempFilter.publisher=this.value"></div>'}else if(currentTab==='published'){html='<div class="filter-modal-title">筛选 - 我发布的</div><div class="filter-group"><div class="filter-group-title">状态</div><div class="filter-options" id="fStatusOptions"><div class="filter-option '+(tempFilter.status===''?'active':'')+'" data-value="">全部</div><div class="filter-option '+(tempFilter.status==='published'?'active':'')+'" data-value="published">已发布</div><div class="filter-option '+(tempFilter.status==='draft'?'active':'')+'" data-value="draft">草稿</div><div class="filter-option '+(tempFilter.status==='recalled'?'active':'')+'" data-value="recalled">已撤回</div><div class="filter-option '+(tempFilter.status==='scheduled'?'active':'')+'" data-value="scheduled">定时待发布</div></div></div><div class="filter-group"><div class="filter-group-title">业务分类</div><div class="filter-options" id="fCategoryOptions"><div class="filter-option '+(tempFilter.category===''?'active':'')+'" data-value="">全部分类</div><div class="filter-option '+(tempFilter.category==='动力能源部/制水车间'?'active':'')+'" data-value="动力能源部/制水车间">制水车间</div><div class="filter-option '+(tempFilter.category==='动力能源部/煤气车间'?'active':'')+'" data-value="动力能源部/煤气车间">煤气车间</div><div class="filter-option '+(tempFilter.category==='轧钢生产'?'active':'')+'" data-value="轧钢生产">轧钢生产</div></div></div>'}else if(currentTab==='favorites'){html='<div class="filter-modal-title">筛选 - 我的收藏</div><div class="filter-group"><div class="filter-group-title">来源</div><div class="filter-options" id="fSourceOptions"><div class="filter-option '+(tempFilter.source===''?'active':'')+'" data-value="">全部</div><div class="filter-option '+(tempFilter.source==='published'?'active':'')+'" data-value="published">我发布的</div><div class="filter-option '+(tempFilter.source==='received'?'active':'')+'" data-value="received">我收到的</div></div></div><div class="filter-group"><div class="filter-group-title">业务分类</div><div class="filter-options" id="fCategoryOptions2"><div class="filter-option '+(tempFilter.category===''?'active':'')+'" data-value="">全部分类</div><div class="filter-option '+(tempFilter.category==='动力能源部/制水车间'?'active':'')+'" data-value="动力能源部/制水车间">制水车间</div><div class="filter-option '+(tempFilter.category==='动力能源部/煤气车间'?'active':'')+'" data-value="动力能源部/煤气车间">煤气车间</div><div class="filter-option '+(tempFilter.category==='轧钢生产'?'active':'')+'" data-value="轧钢生产">轧钢生产</div></div></div>'}html+='<div class="filter-modal-actions"><button class="filter-cancel" onclick="resetFilter()">重置</button><button class="filter-confirm" onclick="applyFilter()">确定</button></div>';document.getElementById('filterModalContent').innerHTML=html;if(currentTab==='received'){renderTemplateTree();bindIsReadOptions()}else if(currentTab==='published'){bindFilterOptions('fStatusOptions',tempFilter,'status');bindFilterOptions('fCategoryOptions',tempFilter,'category')}else if(currentTab==='favorites'){bindFilterOptions('fSourceOptions',tempFilter,'source');bindFilterOptions('fCategoryOptions2',tempFilter,'category')}}
+function renderTemplateTree(){var c=document.getElementById('fTemplateTree');if(!c)return;c.innerHTML=buildTreeHtml(templateTreeData,0)}
+function buildTreeHtml(nodes,level){var html='';nodes.forEach(function(n){var hasChildren=n.children&&n.children.length>0;var isTpl=templateData[n.id];var isChecked=tempFilter.templateIds.indexOf(n.id)>=0;var childrenOpen=true;html+='<div class="tree-node"><div class="tree-node-title" onclick="toggleTreeNode(this,'+hasChildren+',\''+n.id+'\','+(isTpl?'true':'false')+')">';if(hasChildren)html+='<span class="arrow open">▶</span>';else html+='<span style="width:10px"></span>';html+='<span class="check '+(isChecked?'checked':'')+'"></span>';html+='<span>'+n.name+'</span></div>';if(hasChildren){html+='<div class="tree-children open">';html+=buildTreeHtml(n.children,level+1);html+='</div>'}html+='</div>'});return html}
+function toggleTreeNode(el,hasChildren,nodeId,isTpl){if(hasChildren){var child=el.parentElement.querySelector('.tree-children');if(child){child.classList.toggle('open');var arrow=el.querySelector('.arrow');if(arrow)arrow.classList.toggle('open')}}if(isTpl){var idx=tempFilter.templateIds.indexOf(nodeId);if(idx>=0)tempFilter.templateIds.splice(idx,1);else tempFilter.templateIds.push(nodeId)}else{var tplIds=[];collectTplIds(el,tplIds);tplIds.forEach(function(id){var i=tempFilter.templateIds.indexOf(id);if(i>=0)tempFilter.templateIds.splice(i,1);else tempFilter.templateIds.push(id)})}renderTemplateTree()}
+function collectTplIds(el,arr){var children=el.parentElement.querySelectorAll('.tree-node-title');children.forEach(function(c){var oc=c.getAttribute('onclick');var parts=oc.split("'");var id=parts.length>=2?parts[1]:null;if(id&&templateData[id]){if(arr.indexOf(id)<0)arr.push(id)}else{var sub=c.parentElement.querySelector('.tree-children');if(sub){sub.querySelectorAll('.tree-node-title').forEach(function(s){var oc2=s.getAttribute('onclick');var parts2=oc2.split("'");var sid=parts2.length>=2?parts2[1]:null;if(sid&&templateData[sid]&&arr.indexOf(sid)<0)arr.push(sid)})}}})}
+function updateFilterBtn(){}
+function closeFilter(){document.getElementById('filterMask').classList.remove('active');document.getElementById('filterModal').classList.remove('active')}
+document.addEventListener('click',function(e){var t=e.target.closest('#fStatusOptions .filter-option,#fCategoryOptions .filter-option,#fSourceOptions .filter-option,#fCategoryOptions2 .filter-option,#fIsReadOptions .filter-option');if(t){var g=t.parentElement.id;var v=t.getAttribute('data-value');if(g==='fStatusOptions')tempFilter.status=v;else if(g==='fCategoryOptions')tempFilter.category=v;else if(g==='fSourceOptions')tempFilter.source=v;else if(g==='fCategoryOptions2')tempFilter.category=v;else if(g==='fIsReadOptions')tempFilter.isRead=v;t.parentElement.querySelectorAll('.filter-option').forEach(function(el){el.classList.toggle('active',el===t)})}});
+function resetFilter(){if(currentTab==='received'){tempFilter={dateStart:'',dateEnd:'',templateIds:[],publisher:'',isRead:''};document.getElementById('fDateStart').value='';document.getElementById('fDateEnd').value='';document.getElementById('fPublisher').value='';document.querySelectorAll('#fIsReadOptions .filter-option').forEach(function(el){el.classList.toggle('active',el.getAttribute('data-value')==='')});renderTemplateTree()}else{if(currentTab==='published'){tempFilter={status:'',category:'',templateIds:[]};document.querySelectorAll('#fStatusOptions .filter-option').forEach(function(el){el.classList.toggle('active',el.getAttribute('data-value')==='')});document.querySelectorAll('#fCategoryOptions .filter-option').forEach(function(el){el.classList.toggle('active',el.getAttribute('data-value')==='')})}else if(currentTab==='favorites'){tempFilter={source:'',category:''};document.querySelectorAll('#fSourceOptions .filter-option').forEach(function(el){el.classList.toggle('active',el.getAttribute('data-value')==='')});document.querySelectorAll('#fCategoryOptions2 .filter-option').forEach(function(el){el.classList.toggle('active',el.getAttribute('data-value')==='')})}}}
+function applyFilter(){filterState[currentTab]=JSON.parse(JSON.stringify(tempFilter));updateStatusLabel();updateDateLabel();updatePublisherLabel();updateFavCategoryLabel();syncDateInputs();if(currentTab==='published')updateTemplateFilterBtn();renderFilterSummary();renderList();closeFilter()}
+var toastTimer;
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('show')},1800)}
+init();
+</script>
+  <div class="read-status-mask" id="readStatusMask" onclick="closeReadStatusModal()"></div>
+  <div class="read-status-modal" id="readStatusModal">
+    <div class="rs-header">
+      <div class="rs-title">阅读情况</div>
+      <div class="rs-close" onclick="closeReadStatusModal()">×</div>
+    </div>
+    <div class="rs-tabs" id="rsTabs">
+      <div class="rs-tab active" data-tab="read" onclick="switchReadStatusTab('read')">已读 (0)</div>
+      <div class="rs-tab" data-tab="unread" onclick="switchReadStatusTab('unread')">未读 (0)</div>
+    </div>
+    <div class="rs-body" id="rsBody"></div>
+  </div>
+</body>
+</html>
